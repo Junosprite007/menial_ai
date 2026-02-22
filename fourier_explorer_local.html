@@ -4,9 +4,9 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Fourier Transform Explorer — TECHIN 513A</title>
+        <title>Fourier Transform Explorer v3 — TECHIN 513A</title>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 
             :root {
                 --bg: #06060b;
@@ -18,13 +18,14 @@
                 --accent-dim: rgba(124, 58, 237, 0.12);
                 --green: #34d399;
                 --green-dim: rgba(52, 211, 153, 0.12);
-                --red: #f87171;
                 --amber: #fbbf24;
+                --amber-dim: rgba(251, 191, 36, 0.1);
                 --text: #d4d4e0;
                 --text-dim: rgba(255, 255, 255, 0.4);
                 --text-dimmer: rgba(255, 255, 255, 0.22);
                 --mono: 'DM Mono', 'SF Mono', 'Fira Code', monospace;
                 --sans: 'Outfit', -apple-system, sans-serif;
+                --serif: 'Newsreader', Georgia, serif;
             }
 
             * {
@@ -42,7 +43,7 @@
                 color: var(--text);
                 font-family: var(--sans);
                 min-height: 100vh;
-                padding: 28px 20px 40px;
+                padding: 28px 20px 260px;
             }
 
             .container {
@@ -184,7 +185,34 @@
                 color: var(--accent);
             }
 
-            /* Transport controls */
+            /* Clickable highlight — shows which element teaches */
+            [data-lesson] {
+                cursor: pointer;
+                position: relative;
+            }
+            [data-lesson]:hover::after {
+                content: '?';
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                width: 14px;
+                height: 14px;
+                background: var(--amber);
+                color: var(--bg);
+                border-radius: 50%;
+                font-size: 9px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: var(--mono);
+            }
+            .btn[data-lesson]:hover::after {
+                top: -6px;
+                right: -6px;
+            }
+
+            /* Transport */
             .transport {
                 display: flex;
                 align-items: center;
@@ -234,7 +262,6 @@
                 background: rgba(255, 255, 255, 0.08);
                 border-radius: 2px;
                 outline: none;
-                accent-color: #7c3aed;
             }
             .transport-seek::-webkit-slider-thumb {
                 -webkit-appearance: none;
@@ -245,8 +272,6 @@
                 cursor: pointer;
                 border: 2px solid var(--bg);
             }
-
-            /* Analysis toggle */
             .analysis-toggle {
                 display: flex;
                 align-items: center;
@@ -292,20 +317,20 @@
             .slider-row {
                 display: flex;
                 align-items: center;
-                gap: 12px;
+                gap: 10px;
                 margin-bottom: 10px;
             }
             .slider-label {
                 font-family: var(--mono);
                 font-size: 11px;
                 color: var(--text-dim);
-                min-width: 120px;
+                min-width: 110px;
             }
             .slider-value {
                 font-family: var(--mono);
                 font-size: 12px;
                 color: var(--accent);
-                min-width: 70px;
+                min-width: 60px;
                 text-align: right;
                 font-weight: 500;
             }
@@ -373,7 +398,6 @@
                 margin-bottom: 16px;
             }
 
-            /* Live indicator */
             .live-badge {
                 display: inline-flex;
                 align-items: center;
@@ -415,8 +439,17 @@
                 border: 1px solid var(--border);
                 border-radius: 8px;
                 padding: 10px 14px;
-                flex: 1 1 130px;
-                min-width: 125px;
+                flex: 1 1 125px;
+                min-width: 120px;
+                cursor: pointer;
+                transition: border-color 0.15s;
+            }
+            .param-card:hover {
+                border-color: var(--amber);
+            }
+            .param-card.active-lesson {
+                border-color: var(--amber);
+                background: var(--amber-dim);
             }
             .param-card .label {
                 font-family: var(--mono);
@@ -426,7 +459,7 @@
             }
             .param-card .value {
                 font-family: var(--mono);
-                font-size: 18px;
+                font-size: 17px;
                 font-weight: 700;
                 color: var(--accent);
             }
@@ -443,36 +476,11 @@
                 margin-top: 2px;
             }
 
-            /* Insight */
-            .insight {
-                background: rgba(124, 58, 237, 0.05);
-                border: 1px solid rgba(124, 58, 237, 0.12);
-                border-radius: 10px;
-                padding: 16px 18px;
-                margin-bottom: 24px;
-            }
-            .insight h3 {
-                font-family: var(--mono);
-                font-size: 12px;
-                color: var(--accent);
-                margin-bottom: 6px;
-            }
-            .insight p {
-                font-size: 13px;
-                color: rgba(255, 255, 255, 0.5);
-                line-height: 1.65;
-            }
-            .insight code {
-                color: var(--accent);
-                font-family: var(--mono);
-                font-size: 12px;
-            }
-
             .controls-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 16px;
-                margin-bottom: 16px;
+                gap: 14px;
+                margin-bottom: 14px;
             }
             @media (max-width: 640px) {
                 .controls-grid {
@@ -487,19 +495,6 @@
                 margin-bottom: 6px;
             }
 
-            .footer {
-                text-align: center;
-                font-family: var(--mono);
-                font-size: 10px;
-                color: var(--text-dimmer);
-                padding-top: 20px;
-            }
-
-            .presets-row {
-                margin-bottom: 14px;
-            }
-
-            /* Analysis-off overlay text */
             .analysis-off-label {
                 position: absolute;
                 top: 50%;
@@ -512,14 +507,139 @@
                 text-align: center;
                 line-height: 1.8;
             }
+
+            .presets-row {
+                margin-bottom: 14px;
+            }
+
+            .footer {
+                text-align: center;
+                font-family: var(--mono);
+                font-size: 10px;
+                color: var(--text-dimmer);
+                padding-top: 20px;
+            }
+
+            /* ══════════════ LESSON PANEL ══════════════ */
+            .lesson-panel {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: #0c0c14;
+                border-top: 1px solid rgba(251, 191, 36, 0.2);
+                box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.6);
+                z-index: 100;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                max-height: 260px;
+                overflow: hidden;
+            }
+            .lesson-panel.collapsed {
+                transform: translateY(calc(100% - 38px));
+            }
+            .lesson-handle {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px 20px;
+                cursor: pointer;
+                user-select: none;
+                background: rgba(251, 191, 36, 0.04);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            }
+            .lesson-handle-icon {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: var(--amber);
+                color: var(--bg);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 700;
+                font-family: var(--mono);
+                flex-shrink: 0;
+            }
+            .lesson-handle-title {
+                font-family: var(--mono);
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--amber);
+                flex: 1;
+            }
+            .lesson-handle-hint {
+                font-family: var(--mono);
+                font-size: 10px;
+                color: var(--text-dimmer);
+            }
+            .lesson-handle-chevron {
+                font-size: 14px;
+                color: var(--text-dim);
+                transition: transform 0.3s;
+            }
+            .lesson-panel.collapsed .lesson-handle-chevron {
+                transform: rotate(180deg);
+            }
+            .lesson-body {
+                padding: 14px 24px 20px;
+                overflow-y: auto;
+                max-height: 210px;
+                line-height: 1.75;
+            }
+            .lesson-body h3 {
+                font-family: var(--sans);
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--amber);
+                margin-bottom: 8px;
+                letter-spacing: -0.01em;
+            }
+            .lesson-body p {
+                font-family: var(--serif);
+                font-size: 14px;
+                color: rgba(255, 255, 255, 0.6);
+                margin-bottom: 10px;
+            }
+            .lesson-body code {
+                font-family: var(--mono);
+                font-size: 12px;
+                color: var(--accent);
+                background: rgba(167, 139, 250, 0.1);
+                padding: 1px 5px;
+                border-radius: 3px;
+            }
+            .lesson-body .formula {
+                font-family: var(--mono);
+                font-size: 13px;
+                color: var(--green);
+                background: rgba(52, 211, 153, 0.06);
+                border: 1px solid rgba(52, 211, 153, 0.12);
+                border-radius: 6px;
+                padding: 8px 14px;
+                margin: 8px 0;
+                display: inline-block;
+            }
+            .lesson-body .key-point {
+                border-left: 3px solid var(--amber);
+                padding-left: 12px;
+                margin: 10px 0;
+                font-family: var(--serif);
+                font-style: italic;
+                color: rgba(255, 255, 255, 0.55);
+            }
+            .lesson-body em {
+                color: rgba(255, 255, 255, 0.75);
+                font-style: italic;
+            }
         </style>
     </head>
     <body>
         <div class="container">
             <h1>Fourier Transform Explorer</h1>
             <p class="subtitle">
-                Load a .wav → play it → watch the FFT / STFT animate in real
-                time → toggle analysis on/off
+                Load audio · play · explore every parameter · click anything for
+                a lesson
             </p>
 
             <!-- Upload -->
@@ -528,7 +648,11 @@
                 <div
                     id="uploadZone"
                     class="upload-zone"
-                    onclick="document.getElementById('fileInput').click()"
+                    data-lesson="file_input"
+                    onclick="
+                        document.getElementById('fileInput').click();
+                        showLesson('file_input');
+                    "
                 >
                     <input
                         type="file"
@@ -553,16 +677,32 @@
                 <div class="presets-row" style="margin-top: 12px">
                     <div class="section-label">Or use a synthetic signal</div>
                     <div class="btn-group" id="presetBtns">
-                        <button class="btn active" data-preset="tones">
+                        <button
+                            class="btn active"
+                            data-preset="tones"
+                            data-lesson="presets"
+                        >
                             440 + 1000 + 2500 Hz
                         </button>
-                        <button class="btn" data-preset="chirp">
+                        <button
+                            class="btn"
+                            data-preset="chirp"
+                            data-lesson="presets"
+                        >
                             Chirp 100→4000 Hz
                         </button>
-                        <button class="btn" data-preset="impulses">
+                        <button
+                            class="btn"
+                            data-preset="impulses"
+                            data-lesson="presets"
+                        >
                             Impulses
                         </button>
-                        <button class="btn" data-preset="chord">
+                        <button
+                            class="btn"
+                            data-preset="chord"
+                            data-lesson="presets"
+                        >
                             C Major Chord
                         </button>
                     </div>
@@ -576,15 +716,19 @@
                     <button
                         class="transport-btn"
                         id="playBtn"
-                        title="Play / Pause"
-                        onclick="togglePlay()"
+                        title="Play / Pause (Space)"
+                        data-lesson="playback"
+                        onclick="
+                            togglePlay();
+                            showLesson('playback');
+                        "
                     >
                         ▶
                     </button>
                     <button
                         class="transport-btn"
                         id="stopBtn"
-                        title="Stop"
+                        title="Stop (Esc)"
                         onclick="stopPlayback()"
                     >
                         ■
@@ -601,13 +745,16 @@
                         value="0"
                         step="1"
                     />
-                    <div class="analysis-toggle">
+                    <div
+                        class="analysis-toggle"
+                        data-lesson="analysis_toggle"
+                        onclick="
+                            toggleAnalysis();
+                            showLesson('analysis_toggle');
+                        "
+                    >
                         <span>Analysis</span>
-                        <div
-                            class="toggle-switch on"
-                            id="analysisToggle"
-                            onclick="toggleAnalysis()"
-                        >
+                        <div class="toggle-switch on" id="analysisToggle">
                             <div class="knob"></div>
                         </div>
                     </div>
@@ -616,7 +763,11 @@
 
             <!-- Waveform -->
             <div class="section">
-                <div class="section-label">
+                <div
+                    class="section-label"
+                    data-lesson="waveform"
+                    onclick="showLesson('waveform')"
+                >
                     Time Domain — Waveform
                     <span
                         class="live-badge"
@@ -625,7 +776,11 @@
                         ><span class="live-dot"></span>LIVE</span
                     >
                 </div>
-                <div class="canvas-wrap">
+                <div
+                    class="canvas-wrap"
+                    data-lesson="waveform"
+                    onclick="showLesson('waveform')"
+                >
                     <canvas id="waveformCanvas" height="110"></canvas>
                 </div>
                 <div class="canvas-caption" id="waveformCaption"></div>
@@ -633,33 +788,59 @@
 
             <!-- Tabs -->
             <div class="tabs">
-                <button class="tab active" data-tab="fft">
+                <button class="tab active" data-tab="fft" data-lesson="fft_tab">
                     FFT — Frequency Spectrum
                 </button>
-                <button class="tab" data-tab="stft">STFT — Spectrogram</button>
+                <button class="tab" data-tab="stft" data-lesson="stft_tab">
+                    STFT — Spectrogram
+                </button>
             </div>
 
             <!-- Controls -->
             <div class="section">
                 <div class="controls-grid">
-                    <div class="control-group">
+                    <div
+                        class="control-group"
+                        data-lesson="window_function"
+                        onclick="showLesson('window_function')"
+                    >
                         <label>Window Function</label>
                         <div class="btn-group" id="windowBtns">
-                            <button class="btn" data-win="rectangular">
+                            <button
+                                class="btn"
+                                data-win="rectangular"
+                                data-lesson="win_rectangular"
+                            >
                                 rectangular
                             </button>
-                            <button class="btn active" data-win="hann">
+                            <button
+                                class="btn active"
+                                data-win="hann"
+                                data-lesson="win_hann"
+                            >
                                 hann
                             </button>
-                            <button class="btn" data-win="hamming">
+                            <button
+                                class="btn"
+                                data-win="hamming"
+                                data-lesson="win_hamming"
+                            >
                                 hamming
                             </button>
-                            <button class="btn" data-win="blackman">
+                            <button
+                                class="btn"
+                                data-win="blackman"
+                                data-lesson="win_blackman"
+                            >
                                 blackman
                             </button>
                         </div>
                     </div>
-                    <div class="control-group">
+                    <div
+                        class="control-group"
+                        data-lesson="max_freq"
+                        onclick="showLesson('max_freq')"
+                    >
                         <div class="slider-row">
                             <span class="slider-label">Max display freq</span>
                             <input
@@ -676,9 +857,50 @@
                         </div>
                     </div>
                 </div>
+                <div class="controls-grid">
+                    <div
+                        class="control-group"
+                        data-lesson="zero_padding"
+                        onclick="showLesson('zero_padding')"
+                    >
+                        <label>Zero-Padding Ratio</label>
+                        <div class="btn-group" id="zpBtns">
+                            <button class="btn active" data-zp="1">
+                                1× (none)
+                            </button>
+                            <button class="btn" data-zp="2">2×</button>
+                            <button class="btn" data-zp="4">4×</button>
+                            <button class="btn" data-zp="8">8×</button>
+                        </div>
+                    </div>
+                    <div
+                        class="control-group"
+                        data-lesson="dynamic_range"
+                        onclick="showLesson('dynamic_range')"
+                    >
+                        <div class="slider-row">
+                            <span class="slider-label">Dynamic range</span>
+                            <input
+                                type="range"
+                                id="dynRangeSlider"
+                                min="20"
+                                max="120"
+                                step="5"
+                                value="60"
+                            />
+                            <span class="slider-value" id="dynRangeVal"
+                                >60 dB</span
+                            >
+                        </div>
+                    </div>
+                </div>
                 <div id="stftControls" style="display: none">
                     <div class="controls-grid">
-                        <div class="control-group">
+                        <div
+                            class="control-group"
+                            data-lesson="nfft"
+                            onclick="showLesson('nfft')"
+                        >
                             <label>n_fft (window size)</label>
                             <div class="btn-group" id="nfftBtns">
                                 <button class="btn" data-nfft="128">128</button>
@@ -695,7 +917,11 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="control-group">
+                        <div
+                            class="control-group"
+                            data-lesson="overlap"
+                            onclick="showLesson('overlap')"
+                        >
                             <div class="slider-row">
                                 <span class="slider-label">Overlap</span>
                                 <input
@@ -730,9 +956,13 @@
                 <div class="canvas-caption" id="mainCaption"></div>
             </div>
 
-            <!-- Live spectrum (shown during playback when analysis is on) -->
+            <!-- Live spectrum -->
             <div class="section" id="liveSpecSection" style="display: none">
-                <div class="section-label">
+                <div
+                    class="section-label"
+                    data-lesson="live_spectrum"
+                    onclick="showLesson('live_spectrum')"
+                >
                     Live Spectrum at Playhead
                     <span class="live-badge"
                         ><span class="live-dot"></span>REAL-TIME</span
@@ -746,12 +976,19 @@
 
             <!-- Params -->
             <div class="section">
-                <div class="section-label">Computed Parameters</div>
+                <div class="section-label">
+                    Computed Parameters
+                    <span
+                        style="
+                            font-weight: 400;
+                            color: var(--amber);
+                            font-size: 10px;
+                        "
+                        >· click any card for a lesson</span
+                    >
+                </div>
                 <div class="param-grid" id="paramGrid"></div>
             </div>
-
-            <!-- Insight -->
-            <div class="insight" id="insightBox"></div>
 
             <div class="footer">
                 TECHIN 513A · Fourier Transform Fundamentals · Joshua Kirby &
@@ -759,7 +996,317 @@
             </div>
         </div>
 
+        <!-- ══════════════════════════════════════════════════════════════════════════ -->
+        <!-- LESSON PANEL                                                             -->
+        <!-- ══════════════════════════════════════════════════════════════════════════ -->
+
+        <div class="lesson-panel" id="lessonPanel">
+            <div class="lesson-handle" onclick="toggleLessonPanel()">
+                <div class="lesson-handle-icon">?</div>
+                <div class="lesson-handle-title" id="lessonHandleTitle">
+                    Click any parameter to learn about it
+                </div>
+                <div class="lesson-handle-hint">click to expand / collapse</div>
+                <div class="lesson-handle-chevron" id="lessonChevron">▼</div>
+            </div>
+            <div class="lesson-body" id="lessonBody">
+                <h3>Welcome</h3>
+                <p>
+                    Click on any control, button, slider, parameter card, or
+                    canvas in the tool above. A detailed lesson about that
+                    element will appear here — covering what it is, why it
+                    matters, how it connects to your household sound
+                    classification project, and the math behind it.
+                </p>
+                <p>
+                    Hover over any interactive element and look for the
+                    <span style="color: var(--amber); font-weight: 600">?</span>
+                    indicator. Every element with that badge has a lesson
+                    attached.
+                </p>
+                <div class="key-point">
+                    Keyboard shortcuts: Space = play/pause · Esc = stop · A =
+                    toggle analysis
+                </div>
+            </div>
+        </div>
+
         <script>
+            // ═══════════════════════════════════════════════════════════════════════════
+            // KNOWLEDGE BASE
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            const LESSONS = {
+                // ── Core Concepts ──
+
+                waveform: {
+                    title: 'The Waveform — Time Domain',
+                    body: `<h3>The Waveform (Time Domain)</h3>
+<p>This plot shows your audio signal as <em>amplitude vs. time</em> — the raw air pressure measurements captured by a microphone. Each vertical position is one sample: a number representing how far the air pressure deviated from equilibrium at that instant.</p>
+<p>This is the <em>only</em> representation your microphone gives you. It tells you <em>when</em> things happen (a sudden spike = a transient like a door slam) but tells you almost nothing about <em>what frequencies</em> are present. A 440 Hz sine wave and a 1000 Hz sine wave at the same volume look similar — wiggly lines — but sound completely different. That's the fundamental limitation the Fourier Transform solves.</p>
+<div class="key-point">For your household sound project: the waveform is your raw input. Everything downstream — MFCC extraction, spectrogram generation, classification — begins with this sequence of numbers. The quality and sample rate of this waveform set the ceiling for everything that follows.</div>
+<p>The green playhead (visible during playback) shows exactly which part of the waveform is currently being played and analyzed. In STFT mode, the highlighted blue region shows the analysis window — the chunk of samples being fed into the current FFT.</p>`,
+                },
+
+                fft_tab: {
+                    title: 'FFT — Fast Fourier Transform',
+                    body: `<h3>FFT — Fast Fourier Transform</h3>
+<p>The FFT takes a block of N time-domain samples and decomposes them into <em>frequency components</em>. The output tells you: "If I had to rebuild this entire sound using only pure sine waves, how loud would each sine wave need to be, and at what phase?"</p>
+<p>Mathematically, the Discrete Fourier Transform is:</p>
+<div class="formula">X[k] = Σ(n=0 to N-1) x[n] · e^(-j·2π·k·n/N)</div>
+<p>The FFT is just a fast algorithm (O(N log N) instead of O(N²)) for computing this same sum. The output <code>X[k]</code> is a complex number for each frequency bin k. Its <em>magnitude</em> |X[k]| tells you amplitude (loudness), and its <em>phase</em> tells you the time offset of that frequency.</p>
+<div class="key-point">Critical insight: the FFT gives you ONE frequency snapshot of the ENTIRE signal. It's powerful for stationary sounds (a constant hum, a steady tone) but useless for understanding <em>when</em> different frequencies occur. That's why you need the STFT for real audio analysis.</div>
+<p>In this tool, when the audio is playing, the FFT computes on a window centered at the playhead, so you see the frequency content change in real time. When paused, it computes over the full signal.</p>`,
+                },
+
+                stft_tab: {
+                    title: 'STFT — Short-Time Fourier Transform',
+                    body: `<h3>STFT — Short-Time Fourier Transform</h3>
+<p>The STFT solves the FFT's biggest limitation: it reveals how frequency content changes over time. It works by sliding a window across your signal and computing an FFT at each position. Stack all those FFTs side by side and you get a <em>spectrogram</em> — a 2D image where the x-axis is time, y-axis is frequency, and color intensity is magnitude.</p>
+<p>The procedure is:</p>
+<p>1. Place a window of length <code>n_fft</code> at the start of the signal<br>
+2. Multiply the signal chunk by the window function (to reduce leakage)<br>
+3. Compute the FFT of that windowed chunk<br>
+4. Slide the window forward by <code>hop_length</code> samples<br>
+5. Repeat until you've covered the entire signal</p>
+<div class="key-point">The spectrogram IS your primary feature for household sound classification. When you extract MFCCs, you're applying a perceptual filter bank to this spectrogram. When you train a CRNN or Audio Spectrogram Transformer, the input is this spectrogram (or a mel-scaled version). Understanding what the STFT parameters do is understanding the foundation of your entire pipeline.</div>
+<p>The output shape is <code>(n_fft/2 + 1) × num_time_frames</code> — a matrix of complex numbers. You'll almost always work with the magnitude (absolute value), often converted to decibels.</p>`,
+                },
+
+                // ── Parameters ──
+
+                nfft: {
+                    title: 'n_fft — Window Size',
+                    body: `<h3>n_fft (Window Size)</h3>
+<p>This is the single most important parameter in the STFT. It controls how many samples go into each individual FFT computation, and it directly governs the <em>time-frequency tradeoff</em> — the fundamental tension at the heart of spectral analysis.</p>
+<div class="formula">Frequency resolution: Δf = fs / n_fft</div>
+<div class="formula">Window duration: T = n_fft / fs</div>
+<p><em>Larger n_fft</em> (e.g., 4096): Each window spans more time, so the FFT can distinguish closely-spaced frequencies. But because the window is long, transient events (a clap, a knife chop) get smeared across the entire window duration — you lose time precision.</p>
+<p><em>Smaller n_fft</em> (e.g., 256): Each window is short, so you can pinpoint exactly <em>when</em> something happens. But the frequency bins are wide and coarse — you can't tell a 440 Hz tone from a 500 Hz tone.</p>
+<div class="key-point">This isn't a limitation of the algorithm — it's a fundamental law of physics. The Heisenberg-Gabor uncertainty principle states: Δf × Δt ≥ 1/(4π). You cannot have perfect resolution in both dimensions simultaneously. Choosing n_fft is choosing where on this tradeoff curve you sit.</div>
+<p><strong>For your project:</strong> household sounds span a huge range. A running faucet is broadband and steady (favors large n_fft). Chopping is impulsive and transient (favors small n_fft). A good default is <code>n_fft = 1024</code> at 44.1 kHz (~23 ms window) or <code>n_fft = 512</code> at 16 kHz (~32 ms). YAMNet uses the latter.</p>
+<p>Try flipping between 256 and 4096 right now with the chirp signal to see this tradeoff viscerally.</p>`,
+                },
+
+                overlap: {
+                    title: 'Overlap & Hop Length',
+                    body: `<h3>Overlap / Hop Length</h3>
+<p>After computing the FFT for one window position, the window slides forward by <code>hop_length</code> samples before computing the next FFT. The overlap is the portion of each window shared with the next:</p>
+<div class="formula">hop_length = n_fft × (1 - overlap%)</div>
+<div class="formula">overlap_samples = n_fft - hop_length</div>
+<p><em>High overlap (75%)</em>: The window moves in small steps. Adjacent FFT frames share most of their data, producing a smooth, high-resolution time axis. This is the standard for analysis — it captures gradual changes and prevents you from missing events that fall between frames.</p>
+<p><em>Low overlap (0%)</em>: Each window is completely independent. You get fewer time frames (faster computation, less data) but with gaps. A sound event that straddles the boundary between two windows might be split awkwardly or missed.</p>
+<div class="key-point">75% overlap (hop = n_fft/4) is the gold standard for analysis. 50% overlap (hop = n_fft/2) is the minimum for good signal reconstruction if you ever need to convert back to audio (inverse STFT). For classification-only tasks where you don't reconstruct, 50% is often fine and halves your computation.</div>
+<p>The hop length also determines your time resolution: <code>Δt = hop_length / fs</code>. At 75% overlap with n_fft=1024 and fs=44100, each frame represents ~5.8 ms — fine enough to detect the onset of most household sounds.</p>`,
+                },
+
+                window_function: {
+                    title: 'Window Functions — Why They Exist',
+                    body: `<h3>Window Functions</h3>
+<p>Here's the key insight: <em>the FFT assumes your signal repeats forever</em>. It takes whatever finite chunk of samples you give it and mathematically treats it as one period of an infinitely repeating signal.</p>
+<p>If your chunk doesn't start and end at the same amplitude (and real audio almost never does), this assumed repetition creates an artificial discontinuity — a sudden jump at the boundary. The FFT faithfully decomposes this jump into a spray of high-frequency components that don't actually exist in your signal. This artifact is called <em>spectral leakage</em>.</p>
+<p>The window function solves this by multiplying your signal chunk by a smooth curve that tapers both ends toward zero. When the FFT "loops" the chunk, the seam is smooth and the fake discontinuity vanishes.</p>
+<div class="key-point">This is not optional. For any real audio analysis, you must use a window function. The only question is which one — and that's a tradeoff between main lobe width (frequency resolution) and sidelobe suppression (leakage reduction).</div>
+<p>Click each window type below for its specific characteristics.</p>`,
+                },
+
+                win_rectangular: {
+                    title: 'Rectangular Window (No Window)',
+                    body: `<h3>Rectangular Window</h3>
+<p>The rectangular window is "no window at all" — every sample is multiplied by 1.0. The signal passes through unchanged.</p>
+<p><strong>Pros:</strong> Narrowest main lobe of any window. This means it has the best ability to distinguish two closely-spaced frequencies (finest frequency resolution).</p>
+<p><strong>Cons:</strong> Worst sidelobe suppression. The first sidelobe is only -13 dB below the main lobe. This means a loud sound will "leak" significant energy into neighboring frequency bins, potentially masking quieter sounds nearby.</p>
+<div class="key-point">In practice, the rectangular window is almost never used for analysis. The leakage is too severe. Its only real use case is when you know your signal is exactly periodic within the window (e.g., you've carefully extracted exactly one period of a known waveform) — which never happens with real audio from a microphone.</div>
+<p>Try switching between Rectangular and Hann right now — notice how the noise floor in the FFT drops dramatically with Hann, even though the peaks widen slightly.</p>`,
+                },
+
+                win_hann: {
+                    title: 'Hann Window',
+                    body: `<h3>Hann Window (raised cosine)</h3>
+<div class="formula">w[n] = 0.5 × (1 - cos(2πn / (N-1)))</div>
+<p>The Hann window is the <em>default choice</em> for audio signal processing. It smoothly tapers from zero at both edges to a maximum at the center, following a single cosine cycle.</p>
+<p><strong>Main lobe width:</strong> Moderate — about 2× wider than rectangular. You lose some ability to separate close frequencies, but for most audio applications this is acceptable.</p>
+<p><strong>Sidelobe suppression:</strong> First sidelobe at -31 dB, and sidelobes fall off at 18 dB/octave. This is a massive improvement over rectangular — leaked energy drops rapidly.</p>
+<div class="key-point">If you're unsure which window to use, use Hann. It's the default in librosa, in the DCASE baselines, in YAMNet preprocessing, and in virtually every audio ML pipeline. Your project should use this unless you have a specific reason not to.</div>
+<p>Note: "Hann" (named after Julius von Hann) and "Hanning" are the same thing. Some sources also call it "Hann" to distinguish it from "Hamming" — they're different windows with similar names.</p>`,
+                },
+
+                win_hamming: {
+                    title: 'Hamming Window',
+                    body: `<h3>Hamming Window</h3>
+<div class="formula">w[n] = 0.54 - 0.46 × cos(2πn / (N-1))</div>
+<p>The Hamming window is very similar to Hann but doesn't taper all the way to zero at the edges — it stops at about 0.08 (8% of maximum). This small pedestal is carefully chosen to minimize the first sidelobe.</p>
+<p><strong>First sidelobe:</strong> -42 dB (significantly better than Hann's -31 dB). This makes Hamming better at suppressing leakage from the nearest neighboring frequencies.</p>
+<p><strong>Sidelobe falloff:</strong> Only 6 dB/octave (much worse than Hann). Distant sidelobes decay more slowly, so leakage from frequencies far from a peak is worse.</p>
+<div class="key-point">Hamming is traditionally the default in speech processing (ASR systems, speech codecs) because speech has strong harmonic structure where you care most about suppressing the nearest sidelobes. For general environmental sounds — which tend to be broadband and noisy — Hann is usually preferred because its faster sidelobe rolloff handles diffuse energy better.</div>`,
+                },
+
+                win_blackman: {
+                    title: 'Blackman Window',
+                    body: `<h3>Blackman Window</h3>
+<div class="formula">w[n] = 0.42 - 0.5·cos(2πn/(N-1)) + 0.08·cos(4πn/(N-1))</div>
+<p>The Blackman window uses a three-term cosine sum to achieve the strongest sidelobe suppression of the standard windows: first sidelobe at -58 dB, with rapid falloff.</p>
+<p><strong>Tradeoff:</strong> The main lobe is about 3× wider than rectangular and ~1.5× wider than Hann. This means less ability to distinguish closely-spaced frequencies.</p>
+<div class="key-point">Use Blackman when you need to detect very quiet sounds in the presence of very loud ones — for example, hearing a faint water drip while a fan is running loudly. The aggressive sidelobe suppression prevents the fan's energy from leaking into the frequency bins where the drip lives. But for general classification, Hann's narrower main lobe is usually preferred.</div>`,
+                },
+
+                zero_padding: {
+                    title: 'Zero-Padding Ratio',
+                    body: `<h3>Zero-Padding</h3>
+<p>Zero-padding means appending zeros to the end of your windowed signal before computing the FFT. If your window has <code>n_fft</code> samples and you zero-pad to <code>n_fft × 4</code>, you're computing a 4× larger FFT on the same data.</p>
+<div class="formula">With zero-padding: FFT size = n_fft × ratio</div>
+<div class="formula">Apparent Δf = fs / (n_fft × ratio)</div>
+<p><strong>What it does:</strong> It <em>interpolates</em> between existing frequency bins. The spectrum looks smoother because you have more points along the curve.</p>
+<p><strong>What it does NOT do:</strong> It does not improve actual frequency resolution. It does not let you distinguish two tones that were too close to separate without zero-padding. The information content is identical — you're just viewing it at higher "pixel density."</p>
+<div class="key-point">Think of it like upscaling an image. A 100×100 photo upscaled to 400×400 looks smoother but doesn't reveal details that weren't there. Similarly, zero-padding makes your FFT curve smoother and helps you pinpoint where peaks are, but doesn't create new information. True resolution improvement only comes from a longer window (more real samples).</div>
+<p><strong>When it's useful:</strong> Spotting the exact frequency of a peak (the interpolation helps), making spectrograms look cleaner for visual inspection, and meeting power-of-2 FFT size requirements efficiently. For ML pipelines that feed spectrograms to neural networks, zero-padding is rarely needed — the model learns from the data regardless of bin interpolation.</p>`,
+                },
+
+                dynamic_range: {
+                    title: 'Dynamic Range (dB Floor)',
+                    body: `<h3>Dynamic Range</h3>
+<p>The dynamic range slider controls how many decibels below the loudest frequency you can see in the visualization. It sets the "floor" of the color map or the bottom of the FFT plot.</p>
+<div class="formula">Display range: [peak_dB - dynamic_range, peak_dB]</div>
+<p>At <strong>30 dB</strong>: Only the loudest components are visible. Quiet details disappear into the noise floor. Useful for isolating dominant frequencies.</p>
+<p>At <strong>90+ dB</strong>: Even very faint components become visible. The spectrogram shows much more detail, but may also reveal noise, window artifacts, and numerical floor that aren't meaningful.</p>
+<div class="key-point">The decibel scale is logarithmic: every +20 dB means the actual amplitude is 10× larger. A 60 dB range means you're showing signals from full volume down to 1/1000th of the peak amplitude. A 120 dB range covers the entire span from a jet engine to the threshold of human hearing — usually overkill for audio analysis.</div>
+<p><strong>For your project:</strong> 60 dB is a good default for spectrograms. When looking at household sounds, if you can't see a quiet sound (like a distant tap running while a fan is on), try increasing the range to 80-90 dB. If the spectrogram looks noisy and messy, decrease it to 40-50 dB to focus on the dominant features.</p>`,
+                },
+
+                max_freq: {
+                    title: 'Maximum Display Frequency',
+                    body: `<h3>Maximum Display Frequency</h3>
+<p>This simply crops the visual display — it doesn't change any computation. It lets you zoom into the frequency range you care about.</p>
+<p>The absolute maximum displayable frequency is the <em>Nyquist frequency</em> = fs/2. Any energy above Nyquist was lost during recording (or worse, aliased down into lower frequencies if anti-aliasing wasn't applied).</p>
+<div class="key-point">Most household sounds have meaningful energy below 8 kHz. Human speech fundamental frequencies are 80-300 Hz, with harmonics and formants up to ~4 kHz. Running water peaks around 2-6 kHz. A boiling pot hisses mostly in the 1-8 kHz range. Setting the display to 8000 Hz gives you a clear view of the action without wasting visual space on empty high-frequency bands.</div>
+<p>If you're using the YAMNet pipeline (16 kHz sample rate), the Nyquist is 8000 Hz — so this parameter automatically caps there. At 44.1 kHz, Nyquist is 22050 Hz, and the top ~14 kHz is usually quiet for household sounds.</p>`,
+                },
+
+                // ── Computed Parameters ──
+
+                param_fs: {
+                    title: 'Sample Rate (fs)',
+                    body: `<h3>Sample Rate (fs)</h3>
+<p>The sample rate is the number of times per second the analog-to-digital converter measured the air pressure at the microphone. Each measurement produces one <em>sample</em> — a single number.</p>
+<div class="formula">Common rates: 8000 Hz (telephone) · 16000 Hz (speech ML) · 44100 Hz (CD) · 48000 Hz (video)</div>
+<p>The sample rate determines the <em>highest frequency you can faithfully capture</em> via the Nyquist-Shannon theorem:</p>
+<div class="formula">Maximum frequency = fs / 2</div>
+<p>At 44100 Hz, you can capture up to 22050 Hz — just above the upper limit of human hearing (~20 kHz). At 16000 Hz, you're limited to 8000 Hz — which is enough for speech and most environmental sounds but cuts off some high-frequency detail like the sizzle of frying or the hiss of a spray bottle.</p>
+<div class="key-point">For your project: YAMNet expects 16 kHz audio. If you record at 44.1 kHz, you'll downsample to 16 kHz before feeding data to the model. This is fine — household sounds rarely have critical information above 8 kHz. Recording at 44.1 kHz and downsampling is actually better than recording at 16 kHz directly, because the 44.1 kHz recording applies proper anti-aliasing filtering during the downsample.</div>`,
+                },
+
+                param_nyquist: {
+                    title: 'Nyquist Frequency',
+                    body: `<h3>Nyquist Frequency (fs/2)</h3>
+<p>Named after Harry Nyquist, this is the absolute upper limit of frequencies your digital signal can represent. Any frequency component in the original analog sound above this threshold is <em>not captured</em> — or worse, it <em>aliases</em>.</p>
+<p><em>Aliasing</em> is when a high frequency "folds" down and masquerades as a lower frequency. Imagine a wagon wheel in a movie spinning so fast it appears to spin backward — that's aliasing. In audio, a 23 kHz tone sampled at 44.1 kHz would appear as a phantom tone at 44.1 - 23 = 21.1 kHz.</p>
+<div class="key-point">In practice, your recording hardware applies an anti-aliasing filter (a low-pass filter) before the analog-to-digital converter. This filter removes everything above Nyquist before sampling, preventing aliasing. You don't usually need to worry about this unless you're downsampling in software — then YOU need to apply the anti-aliasing filter yourself (scipy.signal.resample does this for you).</div>`,
+                },
+
+                param_N: {
+                    title: 'N — Total Sample Count',
+                    body: `<h3>N (Total Samples)</h3>
+<p>N is simply how many samples are in your audio signal. Combined with the sample rate, it determines the duration:</p>
+<div class="formula">Duration = N / fs</div>
+<p>For the <em>full-signal FFT</em>, N directly determines frequency resolution:</p>
+<div class="formula">Δf = fs / N</div>
+<p>A 2-second clip at 44100 Hz has N = 88200, giving Δf = 0.5 Hz — incredibly fine resolution. But this is the full-signal FFT, which collapses all time information.</p>
+<div class="key-point">For classification, N matters because it determines how much context your model has. Too short (< 0.5s) and transient sounds might not complete. Too long (> 10s) and you're wasting computation on silence or mixing multiple events. Most environmental sound datasets use 1-5 second clips. AudioSet uses 10-second segments, ESC-50 uses 5 seconds.</div>`,
+                },
+
+                param_delta_f: {
+                    title: 'Δf — Frequency Resolution',
+                    body: `<h3>Δf — Frequency Resolution</h3>
+<div class="formula">Δf = fs / n_fft (for STFT) or fs / N (for full-signal FFT)</div>
+<p>This is the width of each frequency bin in Hertz. Two pure tones must be at least Δf apart for you to see them as separate peaks. If they're closer, they merge into one blob.</p>
+<p>Example: With n_fft = 1024 at fs = 44100 Hz, Δf = 43.1 Hz. This means you can distinguish a 440 Hz tone (A4) from a 493 Hz tone (B4) — they're 53 Hz apart. But you couldn't cleanly separate two notes just a half-step apart in the lower register.</p>
+<div class="key-point">For household sound classification, coarse frequency resolution is often acceptable. You don't need to identify the exact pitch of a smoke alarm — you just need to know "there's a persistent tone around 3 kHz." Neural networks trained on spectrograms learn to be robust to binning effects. Where resolution matters more is in MFCC extraction, where the mel filter bank smooths over individual bins anyway.</div>`,
+                },
+
+                param_delta_t: {
+                    title: 'Δt — Time Resolution',
+                    body: `<h3>Δt — Time Resolution</h3>
+<div class="formula">Δt = hop_length / fs</div>
+<p>This is the time interval between successive STFT frames — how often you get a new frequency snapshot. Smaller Δt means finer time granularity in your spectrogram.</p>
+<p>With n_fft = 1024, 75% overlap, and fs = 44100 Hz: hop = 256, so Δt = 5.8 ms. You get a new frequency analysis every 5.8 milliseconds.</p>
+<div class="key-point">For Sound Event Detection (like your CRNN from the research doc), Δt determines how precisely you can mark the onset and offset of events. A door knock lasting 50 ms at Δt = 5.8 ms spans about 9 frames — enough for a neural network to recognize the temporal pattern. At Δt = 23 ms (with no overlap), that same knock spans only ~2 frames, making temporal patterns much harder to learn.</div>`,
+                },
+
+                param_bins: {
+                    title: 'Frequency Bins',
+                    body: `<h3>Frequency Bins (n_fft/2 + 1)</h3>
+<p>The FFT of a real-valued signal produces a <em>symmetric</em> output. The second half is the mirror image (complex conjugate) of the first. Since it carries no new information, we only keep the first half: <code>n_fft/2 + 1</code> unique bins.</p>
+<p>The "+1" accounts for both the DC component (0 Hz, bin 0) and the Nyquist component (fs/2, the last bin).</p>
+<div class="formula">Bin k corresponds to frequency: f_k = k × (fs / n_fft)</div>
+<p>Each bin collects energy from a band centered at f_k with width Δf. It's not a single frequency — it's a range. A bin labeled "1000 Hz" with Δf = 43 Hz actually collects energy from roughly 978–1022 Hz.</p>
+<div class="key-point">The number of frequency bins determines the "height" (rows) of your spectrogram matrix. For n_fft = 1024, you get 513 bins. When you later convert to a mel spectrogram (e.g., 64 or 128 mel bands), you're compressing these 513 linear bins into fewer, perceptually-spaced bands. The mel conversion is a dimensionality reduction on top of the STFT output.</div>`,
+                },
+
+                param_frames: {
+                    title: 'Time Frames',
+                    body: `<h3>Time Frames</h3>
+<div class="formula">num_frames ≈ (N - n_fft) / hop_length + 1</div>
+<p>This is the number of FFT computations performed — how many "columns" your spectrogram has. Each frame is one windowed, FFT'd chunk of audio.</p>
+<p>More frames (higher overlap, smaller hop) = smoother time axis but more data to process. Fewer frames = faster computation but coarser time resolution.</p>
+<div class="key-point">The spectrogram shape — (freq_bins × time_frames) — is the input tensor to your neural network. If you're using a CNN like in the DCASE baselines, this 2D matrix is treated exactly like an image. The network learns visual patterns: a horizontal stripe = a sustained tone, a vertical bar = a broadband transient, a rising diagonal = a frequency sweep. Understanding what these visual patterns mean starts here.</div>`,
+                },
+
+                param_shape: {
+                    title: 'Output Shape',
+                    body: `<h3>Spectrogram Output Shape</h3>
+<p>The final spectrogram matrix has shape <code>(freq_bins × time_frames)</code>. This is a 2D array of complex numbers (or magnitudes, after taking the absolute value).</p>
+<p>Example: n_fft=1024, 2-second audio at 44100 Hz with 75% overlap → 513 × 346 matrix. That's 177,498 values — a rich representation of the audio's frequency content over time.</p>
+<div class="key-point">This matrix is the bridge between audio and computer vision. Researchers discovered that treating spectrograms as grayscale (or color-mapped) images and applying image classification networks (CNNs, Vision Transformers) works remarkably well for audio classification. The Audio Spectrogram Transformer (AST) from your research doc slices this matrix into 16×16 patches and processes them with attention — exactly like a Vision Transformer processes image patches.</div>`,
+                },
+
+                // ── Features ──
+
+                playback: {
+                    title: 'Audio Playback',
+                    body: `<h3>Audio Playback</h3>
+<p>The playback system uses the <em>Web Audio API</em>, which decodes your audio file using the browser's built-in codecs (supporting WAV, MP3, OGG, FLAC, and M4A). The decoded audio is stored as a buffer of floating-point samples — the same raw data the visualizations analyze.</p>
+<p>During playback, the animation loop runs at your screen's refresh rate (typically 60 fps). Each frame, it reads the current playback position, computes the FFT at that position, and redraws the visualization. This is the same principle your household sound system would use — a continuously updating analysis of a live audio stream.</p>
+<div class="key-point">On a Raspberry Pi, you'd replace the Web Audio API with PyAudio or sounddevice for real-time capture, and run the FFT/STFT in numpy. The concepts are identical — read a buffer of samples, apply a window, compute the FFT, extract features, classify. The latency budget your proposal targets (< 2 seconds) is generous; a well-optimized pipeline on a Pi can achieve 100-200 ms.</div>`,
+                },
+
+                analysis_toggle: {
+                    title: 'Analysis Toggle',
+                    body: `<h3>Analysis On / Off</h3>
+<p>This toggle lets you experience the difference between <em>hearing audio</em> (time domain only — the raw waveform) and <em>seeing its frequency content</em> (frequency domain — what the Fourier transform reveals).</p>
+<p>With analysis <strong>off</strong>, you hear the audio and see only the waveform. Your ear is doing its own version of frequency analysis (via the cochlea's basilar membrane), but your eyes see only amplitude vs. time.</p>
+<p>With analysis <strong>on</strong>, the Fourier transform makes visible what your ear perceives: the spectral content. A chord becomes distinct stacked harmonics. Running water becomes broadband noise. A smoke alarm becomes a sharp horizontal line at a specific frequency.</p>
+<div class="key-point">This is the fundamental value proposition of the Fourier transform for your project: it transforms the signal from a representation humans and computers struggle to interpret (wiggly amplitude over time) into a representation where patterns become obvious (structured energy in time-frequency space). Your entire classification pipeline depends on this transformation.</div>`,
+                },
+
+                live_spectrum: {
+                    title: 'Live Spectrum Display',
+                    body: `<h3>Live Spectrum at Playhead</h3>
+<p>This display shows the real-time FFT magnitude spectrum at the current playback position. It's the same data as the FFT view above, but rendered as animated bars that update every frame.</p>
+<p>This mimics what a real-time audio analysis system would see — a constantly updating frequency snapshot of the current audio window. Your voice assistant would process each of these frames (or batches of frames) through the classification model.</p>
+<div class="key-point">Watch the bar heights change as different sounds play. Notice how a pure tone shows one dominant bar while noise fills many bars evenly. This visual intuition directly translates to how neural networks perceive the data — a CRNN processes a sequence of these frames, learning which temporal patterns of spectral shapes correspond to which sound classes.</div>`,
+                },
+
+                presets: {
+                    title: 'Synthetic Signal Presets',
+                    body: `<h3>Synthetic Signal Presets</h3>
+<p>These synthetic signals have known properties, making them ideal for building intuition about what the Fourier transform does:</p>
+<p><strong>3 Pure Tones (440 + 1000 + 2500 Hz):</strong> The simplest test case. You should see exactly three peaks in the FFT. If you see more, that's spectral leakage. This signal verifies the transform is working and helps you understand windowing effects.</p>
+<p><strong>Chirp (100→4000 Hz):</strong> A frequency sweep. In the STFT, this should appear as a diagonal line rising from 100 Hz to 4000 Hz. This is the best signal for visualizing the time-frequency tradeoff — watch how the diagonal gets sharper in time with small n_fft but sharper in frequency with large n_fft.</p>
+<p><strong>Impulses:</strong> Short, sharp transients (like claps or knocks). These are broadband — they contain all frequencies simultaneously. In the STFT they appear as vertical bars. Perfect for testing time resolution.</p>
+<p><strong>C Major Chord:</strong> Multiple harmonically-related frequencies. Tests whether your frequency resolution can separate the individual notes and their overtones.</p>
+<div class="key-point">Use these to verify your understanding before moving to real audio. If you can predict what the FFT/STFT will show before you switch signals, you've internalized the fundamentals.</div>`,
+                },
+
+                file_input: {
+                    title: 'Audio File Loading',
+                    body: `<h3>Loading Audio Files</h3>
+<p>The tool accepts WAV, MP3, OGG, FLAC, and M4A files. The browser's Web Audio API decodes them into raw PCM samples (floating-point, -1.0 to 1.0). Stereo files are automatically mixed to mono by averaging channels.</p>
+<p>Files are capped at 30 seconds for performance — JavaScript FFT computation is slower than numpy/scipy. For your actual project in Python, you'll handle much longer files efficiently.</p>
+<div class="key-point">When building your custom dataset of household sounds, record in WAV format at 16 kHz or 44.1 kHz mono. WAV is lossless and avoids the compression artifacts that MP3 introduces (MP3 discards frequencies it considers "inaudible," which could remove features your model needs). For training data, always use lossless formats. MP3 is fine for quick testing and exploration here.</div>
+<p>The sample rate displayed in the file info comes directly from the file's metadata. If your recordings have different sample rates, you'll need to resample them to a common rate before training (librosa.resample or scipy.signal.resample).</p>`,
+                },
+            };
+
             // ═══════════════════════════════════════════════════════════════════════════
             // DSP CORE
             // ═══════════════════════════════════════════════════════════════════════════
@@ -805,8 +1352,8 @@
                     }
                 }
                 for (let len = 2; len <= n; len <<= 1) {
-                    const ang = (-2 * Math.PI) / len;
-                    const wRe = Math.cos(ang),
+                    const ang = (-2 * Math.PI) / len,
+                        wRe = Math.cos(ang),
                         wIm = Math.sin(ang);
                     for (let i = 0; i < n; i += len) {
                         let curRe = 1,
@@ -832,48 +1379,51 @@
                 }
             }
 
-            function computeFFTSlice(signal, start, size, windowType) {
-                let n = 1;
-                while (n < size) n <<= 1;
+            function computeFFTSlice(signal, start, size, windowType, zpRatio) {
+                let fftN = 1;
+                const padded = size * zpRatio;
+                while (fftN < padded) fftN <<= 1;
                 const win = getWindow(windowType, size);
-                const re = new Float64Array(n);
-                const im = new Float64Array(n);
+                const re = new Float64Array(fftN),
+                    im = new Float64Array(fftN);
                 for (let i = 0; i < size; i++) {
                     const idx = start + i;
                     if (idx >= 0 && idx < signal.length)
                         re[i] = signal[idx] * win[i];
                 }
                 fftInPlace(re, im);
-                const half = n / 2 + 1;
+                const half = fftN / 2 + 1;
                 const mag = new Float64Array(half);
                 for (let i = 0; i < half; i++)
                     mag[i] = Math.sqrt(re[i] * re[i] + im[i] * im[i]);
-                return { mag, n };
+                return { mag, n: fftN };
             }
 
-            function computeFullFFT(signal, windowType, sampleRate) {
-                let n = 1;
-                while (n < signal.length) n <<= 1;
+            function computeFullFFT(signal, windowType, sampleRate, zpRatio) {
+                let fftN = 1;
+                const padded = signal.length * zpRatio;
+                while (fftN < padded) fftN <<= 1;
                 const win = getWindow(windowType, signal.length);
-                const re = new Float64Array(n);
-                const im = new Float64Array(n);
+                const re = new Float64Array(fftN),
+                    im = new Float64Array(fftN);
                 for (let i = 0; i < signal.length; i++)
                     re[i] = signal[i] * win[i];
                 fftInPlace(re, im);
-                const half = n / 2 + 1;
-                const mag = new Float64Array(half);
-                const freqs = new Float64Array(half);
+                const half = fftN / 2 + 1;
+                const mag = new Float64Array(half),
+                    freqs = new Float64Array(half);
                 for (let i = 0; i < half; i++) {
                     mag[i] = Math.sqrt(re[i] * re[i] + im[i] * im[i]);
-                    freqs[i] = (i * sampleRate) / n;
+                    freqs[i] = (i * sampleRate) / fftN;
                 }
-                return { mag, freqs, n };
+                return { mag, freqs, n: fftN };
             }
 
-            function computeSTFT(signal, nfft, hop, windowType, sampleRate) {
+            function computeSTFT(signal, nfft, hop, windowType, zpRatio) {
                 const win = getWindow(windowType, nfft);
                 let fftSize = 1;
-                while (fftSize < nfft) fftSize <<= 1;
+                const padded = nfft * zpRatio;
+                while (fftSize < padded) fftSize <<= 1;
                 const numFrames = Math.max(
                     1,
                     Math.floor((signal.length - nfft) / hop) + 1,
@@ -882,8 +1432,8 @@
                 const spec = [];
                 for (let f = 0; f < numFrames; f++) {
                     const start = f * hop;
-                    const re = new Float64Array(fftSize);
-                    const im = new Float64Array(fftSize);
+                    const re = new Float64Array(fftSize),
+                        im = new Float64Array(fftSize);
                     for (let i = 0; i < nfft && start + i < signal.length; i++)
                         re[i] = signal[start + i] * win[i];
                     fftInPlace(re, im);
@@ -893,112 +1443,6 @@
                     spec.push(m);
                 }
                 return { spec, numBins, numFrames, fftSize };
-            }
-
-            // ═══════════════════════════════════════════════════════════════════════════
-            // WAV PARSER
-            // ═══════════════════════════════════════════════════════════════════════════
-
-            function parseWav(buffer) {
-                const view = new DataView(buffer);
-                const riff = String.fromCharCode(
-                    view.getUint8(0),
-                    view.getUint8(1),
-                    view.getUint8(2),
-                    view.getUint8(3),
-                );
-                if (riff !== 'RIFF') throw new Error('Not a valid WAV file');
-                const wave = String.fromCharCode(
-                    view.getUint8(8),
-                    view.getUint8(9),
-                    view.getUint8(10),
-                    view.getUint8(11),
-                );
-                if (wave !== 'WAVE') throw new Error('Not a valid WAV file');
-
-                let offset = 12,
-                    fmtFound = false;
-                let audioFormat,
-                    numChannels,
-                    sampleRate,
-                    bitsPerSample,
-                    dataOffset,
-                    dataSize;
-
-                while (offset < buffer.byteLength - 8) {
-                    const id = String.fromCharCode(
-                        view.getUint8(offset),
-                        view.getUint8(offset + 1),
-                        view.getUint8(offset + 2),
-                        view.getUint8(offset + 3),
-                    );
-                    const size = view.getUint32(offset + 4, true);
-                    if (id === 'fmt ') {
-                        audioFormat = view.getUint16(offset + 8, true);
-                        numChannels = view.getUint16(offset + 10, true);
-                        sampleRate = view.getUint32(offset + 12, true);
-                        bitsPerSample = view.getUint16(offset + 22, true);
-                        fmtFound = true;
-                    } else if (id === 'data') {
-                        dataOffset = offset + 8;
-                        dataSize = size;
-                    }
-                    offset += 8 + size;
-                    if (offset % 2 !== 0) offset++;
-                }
-
-                if (!fmtFound || dataOffset === undefined)
-                    throw new Error('Malformed WAV');
-                if (audioFormat !== 1 && audioFormat !== 3)
-                    throw new Error(
-                        'Only PCM WAV supported (got format ' +
-                            audioFormat +
-                            ')',
-                    );
-
-                const bytesPerSample = bitsPerSample / 8;
-                const numSamples = Math.floor(
-                    dataSize / (bytesPerSample * numChannels),
-                );
-                const signal = new Float64Array(numSamples);
-
-                for (let i = 0; i < numSamples; i++) {
-                    let val = 0;
-                    for (let ch = 0; ch < numChannels; ch++) {
-                        const pos =
-                            dataOffset +
-                            (i * numChannels + ch) * bytesPerSample;
-                        if (pos + bytesPerSample > buffer.byteLength) break;
-                        if (audioFormat === 3) {
-                            val +=
-                                bytesPerSample === 4
-                                    ? view.getFloat32(pos, true)
-                                    : view.getFloat64(pos, true);
-                        } else {
-                            if (bitsPerSample === 16)
-                                val += view.getInt16(pos, true) / 32768;
-                            else if (bitsPerSample === 24) {
-                                let s =
-                                    view.getUint8(pos) |
-                                    (view.getUint8(pos + 1) << 8) |
-                                    (view.getUint8(pos + 2) << 16);
-                                if (s & 0x800000) s |= ~0xffffff;
-                                val += s / 8388608;
-                            } else if (bitsPerSample === 32)
-                                val += view.getInt32(pos, true) / 2147483648;
-                            else if (bitsPerSample === 8)
-                                val += (view.getUint8(pos) - 128) / 128;
-                        }
-                    }
-                    signal[i] = val / numChannels;
-                }
-                return {
-                    signal,
-                    sampleRate,
-                    numChannels,
-                    bitsPerSample,
-                    numSamples,
-                };
             }
 
             // ═══════════════════════════════════════════════════════════════════════════
@@ -1035,8 +1479,8 @@
             }
             function genImpulses(fs, dur) {
                 const N = Math.floor(fs * dur),
-                    s = new Float64Array(N);
-                const iv = Math.floor(fs * 0.35);
+                    s = new Float64Array(N),
+                    iv = Math.floor(fs * 0.35);
                 for (let i = 0; i < N; i++) {
                     const m = i % iv;
                     if (m < Math.floor(fs * 0.012))
@@ -1046,8 +1490,8 @@
             }
             function genChord(fs, dur) {
                 const fr = [261.63, 329.63, 392, 523.25, 659.25, 784],
-                    am = [0.5, 0.4, 0.45, 0.25, 0.2, 0.22];
-                const N = Math.floor(fs * dur),
+                    am = [0.5, 0.4, 0.45, 0.25, 0.2, 0.22],
+                    N = Math.floor(fs * dur),
                     s = new Float64Array(N);
                 for (let i = 0; i < N; i++) {
                     const t = i / fs;
@@ -1095,9 +1539,9 @@
                 [252, 253, 191],
             ];
             function magma(val) {
-                const t = Math.max(0, Math.min(1, val));
-                const idx = t * (MAGMA.length - 1);
-                const lo = Math.floor(idx),
+                const t = Math.max(0, Math.min(1, val)),
+                    idx = t * (MAGMA.length - 1),
+                    lo = Math.floor(idx),
                     hi = Math.min(lo + 1, MAGMA.length - 1),
                     f = idx - lo;
                 return [
@@ -1127,23 +1571,54 @@
                 maxFreq: 8000,
                 nfft: 1024,
                 overlapPct: 75,
+                zpRatio: 1,
+                dynRange: 60,
                 analysisOn: true,
-                // Playback
                 playing: false,
                 playStartTime: 0,
-                playOffset: 0, // where in the audio (seconds) playback started from
+                playOffset: 0,
                 duration: 0,
                 audioCtx: null,
                 sourceNode: null,
                 audioBuffer: null,
                 animFrame: null,
-                // Cached STFT for static view
                 stftData: null,
-                hoverFrame: -1,
+                currentLesson: null,
             };
 
             // ═══════════════════════════════════════════════════════════════════════════
-            // AUDIO PLAYBACK (Web Audio API)
+            // LESSON PANEL
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            let lessonCollapsed = false;
+
+            function showLesson(key) {
+                const lesson = LESSONS[key];
+                if (!lesson) return;
+                S.currentLesson = key;
+                document.getElementById('lessonHandleTitle').textContent =
+                    lesson.title;
+                document.getElementById('lessonBody').innerHTML = lesson.body;
+                const panel = document.getElementById('lessonPanel');
+                if (lessonCollapsed) {
+                    lessonCollapsed = false;
+                    panel.classList.remove('collapsed');
+                }
+                // Highlight active param card
+                document
+                    .querySelectorAll('.param-card')
+                    .forEach(c => c.classList.remove('active-lesson'));
+            }
+
+            function toggleLessonPanel() {
+                lessonCollapsed = !lessonCollapsed;
+                document
+                    .getElementById('lessonPanel')
+                    .classList.toggle('collapsed', lessonCollapsed);
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // AUDIO PLAYBACK
             // ═══════════════════════════════════════════════════════════════════════════
 
             function ensureAudioCtx() {
@@ -1156,30 +1631,24 @@
             }
 
             function buildAudioBuffer() {
-                const ctx = ensureAudioCtx();
-                const buf = ctx.createBuffer(1, S.signal.length, S.sampleRate);
-                const ch = buf.getChannelData(0);
+                const ctx = ensureAudioCtx(),
+                    buf = ctx.createBuffer(1, S.signal.length, S.sampleRate),
+                    ch = buf.getChannelData(0);
                 for (let i = 0; i < S.signal.length; i++) ch[i] = S.signal[i];
                 S.audioBuffer = buf;
                 S.duration = S.signal.length / S.sampleRate;
             }
 
             function togglePlay() {
-                if (S.playing) {
-                    pausePlayback();
-                } else {
-                    startPlayback();
-                }
+                if (S.playing) pausePlayback();
+                else startPlayback();
             }
 
             function startPlayback() {
                 if (!S.signal || S.signal.length === 0) return;
                 ensureAudioCtx();
                 if (!S.audioBuffer) buildAudioBuffer();
-
-                // If at end, restart
                 if (S.playOffset >= S.duration - 0.01) S.playOffset = 0;
-
                 const src = S.audioCtx.createBufferSource();
                 src.buffer = S.audioBuffer;
                 src.connect(S.audioCtx.destination);
@@ -1188,21 +1657,20 @@
                         S.playing = false;
                         S.playOffset = S.duration;
                         updateTransportUI();
-                        stopAnimationLoop();
+                        stopAnimLoop();
                     }
                 };
                 src.start(0, S.playOffset);
                 S.sourceNode = src;
                 S.playStartTime = S.audioCtx.currentTime;
                 S.playing = true;
-
                 updateTransportUI();
-                startAnimationLoop();
+                startAnimLoop();
             }
 
             function pausePlayback() {
                 if (!S.playing) return;
-                S.playOffset = getCurrentTime();
+                S.playOffset = getCurTime();
                 if (S.sourceNode) {
                     try {
                         S.sourceNode.stop();
@@ -1211,8 +1679,8 @@
                 }
                 S.playing = false;
                 updateTransportUI();
-                stopAnimationLoop();
-                renderFrame(); // one final render at pause position
+                stopAnimLoop();
+                renderFrame();
             }
 
             function stopPlayback() {
@@ -1225,19 +1693,21 @@
                 S.playing = false;
                 S.playOffset = 0;
                 updateTransportUI();
-                stopAnimationLoop();
+                stopAnimLoop();
                 renderStaticAll();
             }
 
-            function getCurrentTime() {
+            function getCurTime() {
                 if (!S.playing) return S.playOffset;
-                const elapsed = S.audioCtx.currentTime - S.playStartTime;
-                return Math.min(S.playOffset + elapsed, S.duration);
+                return Math.min(
+                    S.playOffset + S.audioCtx.currentTime - S.playStartTime,
+                    S.duration,
+                );
             }
 
             function seekTo(frac) {
-                const wasPlaying = S.playing;
-                if (wasPlaying) {
+                const was = S.playing;
+                if (was) {
                     if (S.sourceNode) {
                         try {
                             S.sourceNode.stop();
@@ -1247,17 +1717,16 @@
                     S.playing = false;
                 }
                 S.playOffset = frac * S.duration;
-                if (wasPlaying) {
-                    startPlayback();
-                } else {
+                if (was) startPlayback();
+                else {
                     updateTransportUI();
                     renderFrame();
                 }
             }
 
             function formatTime(s) {
-                const m = Math.floor(s / 60);
-                const sec = s - m * 60;
+                const m = Math.floor(s / 60),
+                    sec = s - m * 60;
                 return m + ':' + sec.toFixed(3).padStart(6, '0');
             }
 
@@ -1273,10 +1742,10 @@
             }
 
             // ═══════════════════════════════════════════════════════════════════════════
-            // ANIMATION LOOP
+            // ANIMATION
             // ═══════════════════════════════════════════════════════════════════════════
 
-            function startAnimationLoop() {
+            function startAnimLoop() {
                 function loop() {
                     if (!S.playing) return;
                     renderFrame();
@@ -1284,8 +1753,7 @@
                 }
                 S.animFrame = requestAnimationFrame(loop);
             }
-
-            function stopAnimationLoop() {
+            function stopAnimLoop() {
                 if (S.animFrame) {
                     cancelAnimationFrame(S.animFrame);
                     S.animFrame = null;
@@ -1293,30 +1761,20 @@
             }
 
             function renderFrame() {
-                const t = getCurrentTime();
-                const frac = S.duration > 0 ? t / S.duration : 0;
-
-                // Update seek bar and time
+                const t = getCurTime(),
+                    frac = S.duration > 0 ? t / S.duration : 0;
                 document.getElementById('seekBar').value = Math.round(
                     frac * 1000,
                 );
                 document.getElementById('timeDisplay').textContent =
                     formatTime(t) + ' / ' + formatTime(S.duration);
-
                 drawWaveform(frac);
-
                 if (S.analysisOn) {
-                    if (S.tab === 'fft') drawFFTStatic(frac);
-                    else drawSTFTStatic(frac);
-                    if (S.playing) drawLiveSpectrum(t);
-                } else {
-                    drawAnalysisOff();
-                }
+                    if (S.tab === 'fft') drawFFTView(frac);
+                    else drawSTFTView(frac);
+                    if (S.playing) drawLiveSpec(t);
+                } else drawAnalysisOff();
             }
-
-            // ═══════════════════════════════════════════════════════════════════════════
-            // STATIC RENDER (when not playing)
-            // ═══════════════════════════════════════════════════════════════════════════
 
             function renderStaticAll() {
                 const frac = S.duration > 0 ? S.playOffset / S.duration : 0;
@@ -1325,14 +1783,11 @@
                 );
                 document.getElementById('timeDisplay').textContent =
                     formatTime(S.playOffset) + ' / ' + formatTime(S.duration);
-
                 drawWaveform(frac);
                 if (S.analysisOn) {
-                    if (S.tab === 'fft') drawFFTStatic(frac);
-                    else drawSTFTStatic(frac);
-                } else {
-                    drawAnalysisOff();
-                }
+                    if (S.tab === 'fft') drawFFTView(frac);
+                    else drawSTFTView(frac);
+                } else drawAnalysisOff();
                 document.getElementById('liveSpecSection').style.display =
                     S.playing && S.analysisOn ? '' : 'none';
                 updateParams();
@@ -1343,28 +1798,29 @@
             // DRAWING
             // ═══════════════════════════════════════════════════════════════════════════
 
-            function getCanvasCtx(id, h) {
-                const canvas = document.getElementById(id);
-                const dpr = window.devicePixelRatio || 1;
-                const rect = canvas.parentElement.getBoundingClientRect();
-                const W = rect.width;
-                canvas.width = W * dpr;
-                canvas.height = h * dpr;
-                canvas.style.height = h + 'px';
-                const ctx = canvas.getContext('2d');
+            function getCtx(id, h) {
+                const c = document.getElementById(id),
+                    dpr = window.devicePixelRatio || 1,
+                    r = c.parentElement.getBoundingClientRect(),
+                    W = r.width;
+                c.width = W * dpr;
+                c.height = h * dpr;
+                c.style.height = h + 'px';
+                const ctx = c.getContext('2d');
                 ctx.scale(dpr, dpr);
                 return { ctx, W, H: h };
             }
 
-            function drawWaveform(playFrac) {
-                const { ctx, W, H } = getCanvasCtx('waveformCanvas', 110);
+            function drawWaveform(pf) {
+                const { ctx, W, H } = getCtx('waveformCanvas', 110);
                 ctx.fillStyle = '#0a0a0f';
                 ctx.fillRect(0, 0, W, H);
-
                 if (!S.signal) return;
-                const sig = S.signal;
-
-                // Draw waveform
+                const sig = S.signal,
+                    hop = Math.max(
+                        1,
+                        Math.floor(S.nfft * (1 - S.overlapPct / 100)),
+                    );
                 ctx.beginPath();
                 ctx.strokeStyle = '#60a5fa';
                 ctx.lineWidth = 0.7;
@@ -1384,18 +1840,14 @@
                     ctx.lineTo(px, y2);
                 }
                 ctx.stroke();
-
-                // Center line
                 ctx.strokeStyle = 'rgba(255,255,255,0.06)';
                 ctx.lineWidth = 0.5;
                 ctx.beginPath();
                 ctx.moveTo(0, H / 2);
                 ctx.lineTo(W, H / 2);
                 ctx.stroke();
-
-                // Playhead
-                if (playFrac !== undefined && playFrac >= 0) {
-                    const x = playFrac * W;
+                if (pf !== undefined && pf >= 0) {
+                    const x = pf * W;
                     ctx.strokeStyle = S.playing
                         ? '#34d399'
                         : 'rgba(167,139,250,0.6)';
@@ -1404,13 +1856,11 @@
                     ctx.moveTo(x, 0);
                     ctx.lineTo(x, H);
                     ctx.stroke();
-
-                    // If STFT mode and analysis on, show window highlight
                     if (S.tab === 'stft' && S.analysisOn) {
-                        const samplePos = playFrac * sig.length;
-                        const halfWin = S.nfft / 2;
-                        const x0 = ((samplePos - halfWin) / sig.length) * W;
-                        const x1 = ((samplePos + halfWin) / sig.length) * W;
+                        const sp = pf * sig.length,
+                            hw = S.nfft / 2,
+                            x0 = ((sp - hw) / sig.length) * W,
+                            x1 = ((sp + hw) / sig.length) * W;
                         ctx.fillStyle = 'rgba(99,102,241,0.12)';
                         ctx.fillRect(x0, 0, x1 - x0, H);
                         ctx.strokeStyle = 'rgba(99,102,241,0.3)';
@@ -1418,48 +1868,44 @@
                         ctx.strokeRect(x0, 0, x1 - x0, H);
                     }
                 }
-
-                const dur = (sig.length / S.sampleRate).toFixed(2);
                 document.getElementById('waveformCaption').textContent =
-                    `${S.sourceLabel} · ${sig.length.toLocaleString()} samples · ${S.sampleRate} Hz · ${dur}s`;
+                    `${S.sourceLabel} · ${sig.length.toLocaleString()} samples · ${S.sampleRate} Hz · ${(sig.length / S.sampleRate).toFixed(2)}s`;
             }
 
-            function drawFFTStatic(playFrac) {
+            function drawFFTView(pf) {
                 document.getElementById('analysisOffLabel').style.display =
                     'none';
-                const { ctx, W, H } = getCanvasCtx('mainCanvas', 280);
+                const { ctx, W, H } = getCtx('mainCanvas', 280);
                 ctx.fillStyle = '#0a0a0f';
                 ctx.fillRect(0, 0, W, H);
-
                 if (!S.signal) return;
-
-                // If playing, compute FFT at playhead position; else full signal
                 let mag, freqs, n;
-                if (playFrac !== undefined && playFrac > 0 && playFrac < 1) {
-                    const center = Math.floor(playFrac * S.signal.length);
-                    const start = Math.max(0, center - Math.floor(S.nfft / 2));
-                    const result = computeFFTSlice(
+                if (pf !== undefined && pf > 0 && pf < 1) {
+                    const center = Math.floor(pf * S.signal.length),
+                        start = Math.max(0, center - Math.floor(S.nfft / 2));
+                    const r = computeFFTSlice(
                         S.signal,
                         start,
                         S.nfft,
                         S.windowType,
+                        S.zpRatio,
                     );
-                    mag = result.mag;
-                    n = result.n;
+                    mag = r.mag;
+                    n = r.n;
                     freqs = new Float64Array(mag.length);
                     for (let i = 0; i < mag.length; i++)
                         freqs[i] = (i * S.sampleRate) / n;
                 } else {
-                    const result = computeFullFFT(
+                    const r = computeFullFFT(
                         S.signal,
                         S.windowType,
                         S.sampleRate,
+                        S.zpRatio,
                     );
-                    mag = result.mag;
-                    freqs = result.freqs;
-                    n = result.n;
+                    mag = r.mag;
+                    freqs = r.freqs;
+                    n = r.n;
                 }
-
                 const displayMax = Math.min(S.maxFreq, S.sampleRate / 2);
                 let maxDb = -Infinity;
                 const magDb = [];
@@ -1468,13 +1914,10 @@
                     if (db > maxDb) maxDb = db;
                     magDb.push(db);
                 }
-                const minDb = maxDb - 80;
-
-                const pad = { l: 52, r: 14, t: 14, b: 34 };
-                const pW = W - pad.l - pad.r,
+                const minDb = maxDb - S.dynRange;
+                const pad = { l: 52, r: 14, t: 14, b: 34 },
+                    pW = W - pad.l - pad.r,
                     pH = H - pad.t - pad.b;
-
-                // Grid
                 ctx.strokeStyle = 'rgba(255,255,255,0.04)';
                 ctx.lineWidth = 0.5;
                 const fStep = displayMax > 4000 ? 1000 : 500;
@@ -1485,19 +1928,17 @@
                     ctx.lineTo(x, pad.t + pH);
                     ctx.stroke();
                 }
-
-                // FFT curve
                 ctx.beginPath();
                 ctx.strokeStyle = '#a78bfa';
                 ctx.lineWidth = 1.2;
                 for (let i = 0; i < mag.length; i++) {
                     if (freqs[i] > displayMax) break;
-                    const x = pad.l + (freqs[i] / displayMax) * pW;
-                    const norm = Math.max(
-                        0,
-                        (magDb[i] - minDb) / (maxDb - minDb),
-                    );
-                    const y = pad.t + pH - norm * pH;
+                    const x = pad.l + (freqs[i] / displayMax) * pW,
+                        norm = Math.max(
+                            0,
+                            (magDb[i] - minDb) / (maxDb - minDb),
+                        ),
+                        y = pad.t + pH - norm * pH;
                     if (i === 0) ctx.moveTo(x, y);
                     else ctx.lineTo(x, y);
                 }
@@ -1507,10 +1948,8 @@
                 ctx.closePath();
                 ctx.fillStyle = 'rgba(167,139,250,0.05)';
                 ctx.fill();
-
-                // Axis
                 ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                ctx.font = '10px "DM Mono", monospace';
+                ctx.font = '10px "DM Mono",monospace';
                 ctx.textAlign = 'center';
                 for (
                     let f = 0;
@@ -1525,57 +1964,47 @@
                     pad.l - 4,
                     pad.t + pH + 2,
                 );
-                ctx.fillStyle = 'rgba(255,255,255,0.2)';
-                ctx.textAlign = 'center';
-                ctx.fillText('Frequency (Hz)', W / 2, H);
-
-                const isLive = S.playing && playFrac > 0;
+                const isLive = S.playing && pf > 0;
+                const zpLabel =
+                    S.zpRatio > 1 ? ' · zero-pad: ' + S.zpRatio + '×' : '';
                 document.getElementById('mainCaption').textContent = isLive
-                    ? `FFT at playhead (n_fft=${S.nfft}) · window: ${S.windowType} · Δf = ${(S.sampleRate / n).toFixed(1)} Hz`
-                    : `FFT: ${mag.length.toLocaleString()} bins · Δf = ${(S.sampleRate / n).toFixed(4)} Hz · window: ${S.windowType}`;
+                    ? `FFT at playhead (n_fft=${S.nfft}) · window: ${S.windowType} · range: ${S.dynRange} dB${zpLabel}`
+                    : `FFT: ${mag.length.toLocaleString()} bins · Δf = ${(S.sampleRate / n).toFixed(4)} Hz · window: ${S.windowType} · range: ${S.dynRange} dB${zpLabel}`;
             }
 
-            // Cache STFT imagedata for performance
-            let stftImageCache = null;
-            let stftCacheKey = '';
+            let stftImgCache = null,
+                stftCacheKey = '';
 
-            function drawSTFTStatic(playFrac) {
+            function drawSTFTView(pf) {
                 document.getElementById('analysisOffLabel').style.display =
                     'none';
-                const { ctx, W, H } = getCanvasCtx('mainCanvas', 300);
+                const { ctx, W, H } = getCtx('mainCanvas', 300);
                 ctx.fillStyle = '#0a0a0f';
                 ctx.fillRect(0, 0, W, H);
-
                 if (!S.signal) return;
-
                 const hop = Math.max(
                     1,
                     Math.floor(S.nfft * (1 - S.overlapPct / 100)),
                 );
-                const cacheKey = `${S.signal.length}_${S.nfft}_${hop}_${S.windowType}_${S.maxFreq}_${W}_${H}`;
-
-                const pad = { l: 46, r: 10, t: 10, b: 30 };
-                const pW = W - pad.l - pad.r,
-                    pH = H - pad.t - pad.b;
-                const dpr = window.devicePixelRatio || 1;
-
-                // Recompute STFT only when params change
-                if (stftCacheKey !== cacheKey) {
+                const cKey = `${S.signal.length}_${S.nfft}_${hop}_${S.windowType}_${S.maxFreq}_${S.dynRange}_${S.zpRatio}_${W}_${H}`;
+                const pad = { l: 46, r: 10, t: 10, b: 30 },
+                    pW = W - pad.l - pad.r,
+                    pH = H - pad.t - pad.b,
+                    dpr = window.devicePixelRatio || 1;
+                if (stftCacheKey !== cKey) {
                     const { spec, numBins, numFrames, fftSize } = computeSTFT(
                         S.signal,
                         S.nfft,
                         hop,
                         S.windowType,
-                        S.sampleRate,
+                        S.zpRatio,
                     );
                     S.stftData = { spec, numBins, numFrames, fftSize, hop };
-
-                    const nyq = S.sampleRate / 2;
-                    const displayMax = Math.min(S.maxFreq, nyq);
-                    const maxBinIdx = Math.floor(
-                        (displayMax / nyq) * (numBins - 1),
-                    );
-
+                    const nyq = S.sampleRate / 2,
+                        displayMax = Math.min(S.maxFreq, nyq),
+                        maxBinIdx = Math.floor(
+                            (displayMax / nyq) * (numBins - 1),
+                        );
                     let gMax = -Infinity;
                     const dbSpec = spec.map(fr =>
                         fr.map(v => {
@@ -1584,23 +2013,24 @@
                             return db;
                         }),
                     );
-                    const gMin = gMax - 60;
-
+                    const gMin = gMax - S.dynRange;
                     const imgW = Math.ceil(pW * dpr),
-                        imgH = Math.ceil(pH * dpr);
-                    const imgData = ctx.createImageData(imgW, imgH);
+                        imgH = Math.ceil(pH * dpr),
+                        imgData = ctx.createImageData(imgW, imgH);
                     for (let px = 0; px < imgW; px++) {
                         const fi = Math.min(
-                            Math.floor((px / imgW) * numFrames),
-                            numFrames - 1,
-                        );
-                        const frame = dbSpec[fi];
+                                Math.floor((px / imgW) * numFrames),
+                                numFrames - 1,
+                            ),
+                            frame = dbSpec[fi];
                         for (let py = 0; py < imgH; py++) {
                             const bi = Math.min(
-                                Math.floor(((imgH - py) / imgH) * maxBinIdx),
-                                numBins - 1,
-                            );
-                            const val = (frame[bi] - gMin) / 60;
+                                    Math.floor(
+                                        ((imgH - py) / imgH) * maxBinIdx,
+                                    ),
+                                    numBins - 1,
+                                ),
+                                val = (frame[bi] - gMin) / S.dynRange;
                             const [r, g, b] = magma(val);
                             const idx = (py * imgW + px) * 4;
                             imgData.data[idx] = r;
@@ -1609,16 +2039,13 @@
                             imgData.data[idx + 3] = 255;
                         }
                     }
-                    stftImageCache = imgData;
-                    stftCacheKey = cacheKey;
+                    stftImgCache = imgData;
+                    stftCacheKey = cKey;
                 }
-
-                if (stftImageCache)
-                    ctx.putImageData(stftImageCache, pad.l * dpr, pad.t * dpr);
-
-                // Playhead line on spectrogram
-                if (playFrac !== undefined && playFrac >= 0) {
-                    const x = pad.l + playFrac * pW;
+                if (stftImgCache)
+                    ctx.putImageData(stftImgCache, pad.l * dpr, pad.t * dpr);
+                if (pf !== undefined && pf >= 0) {
+                    const x = pad.l + pf * pW;
                     ctx.strokeStyle = S.playing
                         ? '#34d399'
                         : 'rgba(167,139,250,0.6)';
@@ -1628,12 +2055,10 @@
                     ctx.lineTo(x, pad.t + pH);
                     ctx.stroke();
                 }
-
-                // Axis labels
-                const nyq = S.sampleRate / 2;
-                const displayMax = Math.min(S.maxFreq, nyq);
+                const nyq = S.sampleRate / 2,
+                    displayMax = Math.min(S.maxFreq, nyq);
                 ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                ctx.font = '10px "DM Mono", monospace';
+                ctx.font = '10px "DM Mono",monospace';
                 ctx.textAlign = 'right';
                 const freqStep = displayMax > 4000 ? 2000 : 1000;
                 for (let f = 0; f <= displayMax; f += freqStep) {
@@ -1641,38 +2066,38 @@
                     ctx.fillText(f + '', pad.l - 4, y + 3);
                 }
                 ctx.textAlign = 'center';
-                const dur = S.signal.length / S.sampleRate;
-                const tStep = dur > 3 ? 1 : dur > 1 ? 0.5 : 0.2;
+                const dur = S.signal.length / S.sampleRate,
+                    tStep = dur > 3 ? 1 : dur > 1 ? 0.5 : 0.2;
                 for (let s = 0; s <= dur; s += tStep) {
                     const x = pad.l + (s / dur) * pW;
                     ctx.fillText(s.toFixed(1) + 's', x, H - 6);
                 }
-
-                const freqRes = S.sampleRate / S.nfft;
-                const timeRes = hop / S.sampleRate;
-                const nf = S.stftData ? S.stftData.numFrames : '?';
-                const nb = S.stftData ? S.stftData.numBins : '?';
+                const freqRes = S.sampleRate / S.nfft,
+                    timeRes = hop / S.sampleRate;
+                const nf = S.stftData ? S.stftData.numFrames : '?',
+                    nb = S.stftData ? S.stftData.numBins : '?';
+                const zpLabel =
+                    S.zpRatio > 1 ? ' · zero-pad: ' + S.zpRatio + '×' : '';
                 document.getElementById('mainCaption').textContent =
-                    `STFT: ${nb}×${nf} · Δf=${freqRes.toFixed(1)} Hz · Δt=${(timeRes * 1000).toFixed(1)} ms · n_fft=${S.nfft} · hop=${hop}`;
+                    `STFT: ${nb}×${nf} · Δf=${freqRes.toFixed(1)} Hz · Δt=${(timeRes * 1000).toFixed(1)} ms · range: ${S.dynRange} dB${zpLabel}`;
             }
 
-            function drawLiveSpectrum(currentTime) {
+            function drawLiveSpec(currentTime) {
                 if (!S.signal || !S.analysisOn) return;
-                const { ctx, W, H } = getCanvasCtx('liveSpecCanvas', 180);
+                const { ctx, W, H } = getCtx('liveSpecCanvas', 180);
                 ctx.fillStyle = '#0a0a0f';
                 ctx.fillRect(0, 0, W, H);
-
                 const center = Math.floor(
-                    (currentTime / S.duration) * S.signal.length,
-                );
-                const start = Math.max(0, center - Math.floor(S.nfft / 2));
+                        (currentTime / S.duration) * S.signal.length,
+                    ),
+                    start = Math.max(0, center - Math.floor(S.nfft / 2));
                 const { mag, n } = computeFFTSlice(
                     S.signal,
                     start,
                     S.nfft,
                     S.windowType,
+                    S.zpRatio,
                 );
-
                 const displayMax = Math.min(S.maxFreq, S.sampleRate / 2);
                 let maxDb = -Infinity;
                 const magDb = [];
@@ -1681,30 +2106,23 @@
                     if (db > maxDb) maxDb = db;
                     magDb.push(db);
                 }
-                const minDb = maxDb - 70;
-
-                const pad = { l: 48, r: 12, t: 10, b: 28 };
-                const pW = W - pad.l - pad.r,
+                const minDb = maxDb - S.dynRange;
+                const pad = { l: 48, r: 12, t: 10, b: 28 },
+                    pW = W - pad.l - pad.r,
                     pH = H - pad.t - pad.b;
-
-                // Filled bars style for live view
                 const numDisplayBins = Math.floor(
-                    (displayMax / (S.sampleRate / 2)) * mag.length,
-                );
-                const barW = Math.max(1, pW / numDisplayBins);
-
+                        (displayMax / (S.sampleRate / 2)) * mag.length,
+                    ),
+                    barW = Math.max(1, pW / numDisplayBins);
                 for (let i = 0; i < numDisplayBins && i < mag.length; i++) {
                     const norm = Math.max(
-                        0,
-                        (magDb[i] - minDb) / (maxDb - minDb),
-                    );
-                    const x = pad.l + (i / numDisplayBins) * pW;
-                    const barH = norm * pH;
-                    const freq = (i * S.sampleRate) / n;
-
-                    // Color gradient based on height
-                    const hue = 260 - norm * 80; // purple to green
-                    ctx.fillStyle = `hsla(${hue}, 70%, ${50 + norm * 20}%, ${0.5 + norm * 0.5})`;
+                            0,
+                            (magDb[i] - minDb) / (maxDb - minDb),
+                        ),
+                        x = pad.l + (i / numDisplayBins) * pW,
+                        barH = norm * pH;
+                    const hue = 260 - norm * 80;
+                    ctx.fillStyle = `hsla(${hue},70%,${50 + norm * 20}%,${0.5 + norm * 0.5})`;
                     ctx.fillRect(
                         x,
                         pad.t + pH - barH,
@@ -1712,10 +2130,8 @@
                         barH,
                     );
                 }
-
-                // Axis
                 ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                ctx.font = '10px "DM Mono", monospace';
+                ctx.font = '10px "DM Mono",monospace';
                 ctx.textAlign = 'center';
                 for (
                     let f = 0;
@@ -1723,44 +2139,35 @@
                     f += displayMax > 4000 ? 2000 : 1000
                 )
                     ctx.fillText(f + '', pad.l + (f / displayMax) * pW, H - 4);
-                ctx.textAlign = 'right';
-                ctx.fillText(maxDb.toFixed(0) + ' dB', pad.l - 4, pad.t + 10);
-
-                const freqRes = S.sampleRate / n;
-                document.getElementById('liveSpecCaption').textContent =
-                    `Live FFT at ${currentTime.toFixed(3)}s · n_fft=${S.nfft} · window=${S.windowType} · Δf=${freqRes.toFixed(1)} Hz`;
             }
 
             function drawAnalysisOff() {
-                const { ctx, W, H } = getCanvasCtx(
+                const { ctx, W, H } = getCtx(
                     'mainCanvas',
                     S.tab === 'stft' ? 300 : 280,
                 );
                 ctx.fillStyle = '#0a0a0f';
                 ctx.fillRect(0, 0, W, H);
-
-                // Dim waveform in the main canvas as ambient visual
                 if (S.signal) {
                     ctx.strokeStyle = 'rgba(96,165,250,0.08)';
                     ctx.lineWidth = 0.5;
                     ctx.beginPath();
                     const step = Math.max(1, Math.floor(S.signal.length / W));
                     for (let px = 0; px < W; px++) {
-                        const idx = Math.floor((px / W) * S.signal.length);
-                        const y =
-                            H / 2 -
-                            S.signal[Math.min(idx, S.signal.length - 1)] *
-                                H *
-                                0.4;
+                        const idx = Math.floor((px / W) * S.signal.length),
+                            y =
+                                H / 2 -
+                                S.signal[Math.min(idx, S.signal.length - 1)] *
+                                    H *
+                                    0.4;
                         if (px === 0) ctx.moveTo(px, y);
                         else ctx.lineTo(px, y);
                     }
                     ctx.stroke();
                 }
-
                 document.getElementById('analysisOffLabel').style.display = '';
                 document.getElementById('mainCaption').textContent =
-                    'Analysis disabled — toggle on to see FFT / STFT visualization';
+                    'Analysis disabled — toggle on to see FFT / STFT';
             }
 
             // ═══════════════════════════════════════════════════════════════════════════
@@ -1768,8 +2175,8 @@
             // ═══════════════════════════════════════════════════════════════════════════
 
             function updateParams() {
-                const grid = document.getElementById('paramGrid');
-                const fs = S.sampleRate,
+                const grid = document.getElementById('paramGrid'),
+                    fs = S.sampleRate,
                     nyq = fs / 2,
                     sig = S.signal;
                 if (!sig) {
@@ -1780,140 +2187,142 @@
                     1,
                     Math.floor(S.nfft * (1 - S.overlapPct / 100)),
                 );
-
                 if (S.tab === 'fft') {
                     let n = 1;
-                    while (n < sig.length) n <<= 1;
+                    while (n < sig.length * S.zpRatio) n <<= 1;
                     grid.innerHTML =
                         pc(
                             'Sample Rate (fs)',
                             fs.toLocaleString(),
                             'Hz',
-                            'From .wav header',
+                            'From file header',
+                            'param_fs',
                         ) +
                         pc(
                             'Nyquist (fs/2)',
                             nyq.toLocaleString(),
                             'Hz',
                             'Max detectable freq',
+                            'param_nyquist',
                         ) +
                         pc(
                             'N (samples)',
                             sig.length.toLocaleString(),
                             '',
                             'Input signal length',
+                            'param_N',
                         ) +
                         pc(
                             'Δf = fs/N',
                             (fs / n).toFixed(4),
                             'Hz',
                             'Frequency resolution',
+                            'param_delta_f',
                         ) +
                         pc(
                             'Freq Bins',
                             (n / 2 + 1).toLocaleString(),
                             '',
-                            '= N/2 + 1',
+                            '= FFT_size/2 + 1',
+                            'param_bins',
                         ) +
                         pc(
                             'Window',
                             S.windowType,
                             '',
-                            'Reduces spectral leakage',
+                            'Reduces leakage',
+                            'window_function',
                         );
                 } else {
                     let fftSize = 1;
-                    while (fftSize < S.nfft) fftSize <<= 1;
-                    const numBins = fftSize / 2 + 1;
-                    const numFrames = Math.max(
-                        1,
-                        Math.floor((sig.length - S.nfft) / hop) + 1,
-                    );
-                    const freqRes = fs / S.nfft;
-                    const timeRes = hop / fs;
-                    const winMs = ((S.nfft / fs) * 1000).toFixed(1);
+                    while (fftSize < S.nfft * S.zpRatio) fftSize <<= 1;
+                    const numBins = fftSize / 2 + 1,
+                        numFrames = Math.max(
+                            1,
+                            Math.floor((sig.length - S.nfft) / hop) + 1,
+                        );
+                    const freqRes = fs / S.nfft,
+                        timeRes = hop / fs,
+                        winMs = ((S.nfft / fs) * 1000).toFixed(1);
                     grid.innerHTML =
                         pc(
                             'Sample Rate (fs)',
                             fs.toLocaleString(),
                             'Hz',
-                            'From .wav header',
+                            'From file header',
+                            'param_fs',
                         ) +
                         pc(
                             'Nyquist',
                             nyq.toLocaleString(),
                             'Hz',
                             'Max detectable freq',
+                            'param_nyquist',
                         ) +
-                        pc('n_fft', S.nfft, 'samples', winMs + ' ms window') +
+                        pc(
+                            'n_fft',
+                            S.nfft,
+                            'samples',
+                            winMs + ' ms window',
+                            'nfft',
+                        ) +
                         pc(
                             'Hop Length',
                             hop,
                             'samples',
                             'n_fft × ' + (1 - S.overlapPct / 100).toFixed(2),
+                            'overlap',
                         ) +
                         pc(
                             'Overlap',
                             S.overlapPct + '%',
                             '',
                             S.nfft - hop + ' shared samples',
+                            'overlap',
                         ) +
                         pc(
                             'Δf = fs/n_fft',
                             freqRes.toFixed(1),
                             'Hz',
                             'Freq resolution',
+                            'param_delta_f',
                         ) +
                         pc(
                             'Δt = hop/fs',
                             (timeRes * 1000).toFixed(1),
                             'ms',
                             'Time resolution',
+                            'param_delta_t',
                         ) +
-                        pc('Freq Bins', numBins, 'rows', '= n_fft/2 + 1') +
+                        pc(
+                            'Freq Bins',
+                            numBins,
+                            'rows',
+                            '= FFT_size/2 + 1',
+                            'param_bins',
+                        ) +
                         pc(
                             'Time Frames',
                             numFrames,
                             'cols',
                             '≈ (N−n_fft)/hop + 1',
+                            'param_frames',
                         ) +
                         pc(
                             'Shape',
                             numBins + ' × ' + numFrames,
                             '',
                             'Spectrogram matrix',
+                            'param_shape',
                         );
                 }
             }
 
-            function pc(label, value, unit, detail) {
-                return `<div class="param-card"><div class="label">${label}</div><div class="value">${value}<span class="unit">${unit}</span></div><div class="detail">${detail}</div></div>`;
+            function pc(label, value, unit, detail, lessonKey) {
+                return `<div class="param-card" onclick="showLesson('${lessonKey}')"><div class="label">${label}</div><div class="value">${value}<span class="unit">${unit}</span></div><div class="detail">${detail}</div></div>`;
             }
 
-            function updateInsight() {
-                const box = document.getElementById('insightBox');
-                if (!S.analysisOn) {
-                    box.innerHTML = `<h3>Analysis Off</h3><p>The audio plays as-is — raw waveform, no frequency decomposition. Toggle analysis back on to see how the Fourier transform reveals the frequency content hidden inside the time-domain signal. This is the core idea: the same audio data, two completely different perspectives.</p>`;
-                } else if (S.tab === 'fft') {
-                    box.innerHTML = `<h3>FFT${S.playing ? ' — Live at Playhead' : ''}</h3>
-      <p>${
-          S.playing
-              ? 'The FFT updates in real time, computing a <code>' +
-                S.nfft +
-                '</code>-sample window centered on the playhead. Watch how the spectrum shifts as different parts of the audio play. The <strong>live spectrum</strong> below shows the same data as an animated bar graph.'
-              : 'The FFT decomposes the <em>entire</em> signal into frequency components. Press <strong>Play</strong> to see it animate in real time at the playhead position. Try different <strong>window functions</strong> — Hann vs Rectangular shows the leakage tradeoff clearly.'
-      }</p>`;
-                } else {
-                    box.innerHTML = `<h3>STFT${S.playing ? ' — Live Playback' : ''}</h3>
-      <p>${
-          S.playing
-              ? 'The green playhead sweeps across the spectrogram. The highlighted region on the waveform above shows the exact <code>n_fft=' +
-                S.nfft +
-                '</code> samples being analyzed at that instant. The live spectrum below shows the FFT of that window.'
-              : 'Try switching between <code>n_fft = 256</code> and <code>n_fft = 4096</code>. At 256 transients are sharp but frequencies blur. At 4096 frequencies are razor-sharp but timing smears. Press <strong>Play</strong> to watch the playhead sweep through the spectrogram in real time.'
-      }</p>`;
-                }
-            }
+            function updateInsight() {}
 
             // ═══════════════════════════════════════════════════════════════════════════
             // TOGGLE ANALYSIS
@@ -1928,7 +2337,6 @@
                     S.playing && S.analysisOn ? '' : 'none';
                 if (!S.playing) renderStaticAll();
                 else renderFrame();
-                updateInsight();
             }
 
             // ═══════════════════════════════════════════════════════════════════════════
@@ -1985,46 +2393,38 @@
                         const ctx = ensureAudioCtx();
                         ctx.decodeAudioData(
                             e.target.result,
-                            function (decodedBuffer) {
-                                const raw = decodedBuffer.getChannelData(0); // mono from first channel
-                                // Mix to mono if stereo
+                            function (buf) {
                                 let mono;
-                                if (decodedBuffer.numberOfChannels > 1) {
-                                    mono = new Float64Array(
-                                        decodedBuffer.length,
-                                    );
+                                if (buf.numberOfChannels > 1) {
+                                    mono = new Float64Array(buf.length);
                                     for (
                                         let ch = 0;
-                                        ch < decodedBuffer.numberOfChannels;
+                                        ch < buf.numberOfChannels;
                                         ch++
                                     ) {
-                                        const chData =
-                                            decodedBuffer.getChannelData(ch);
+                                        const d = buf.getChannelData(ch);
                                         for (let i = 0; i < mono.length; i++)
-                                            mono[i] += chData[i];
+                                            mono[i] += d[i];
                                     }
                                     for (let i = 0; i < mono.length; i++)
-                                        mono[i] /=
-                                            decodedBuffer.numberOfChannels;
+                                        mono[i] /= buf.numberOfChannels;
                                 } else {
+                                    const raw = buf.getChannelData(0);
                                     mono = new Float64Array(raw.length);
                                     for (let i = 0; i < raw.length; i++)
                                         mono[i] = raw[i];
                                 }
-
-                                const maxSamples =
-                                    decodedBuffer.sampleRate * 30;
+                                const maxS = buf.sampleRate * 30;
                                 S.signal =
-                                    mono.length > maxSamples
-                                        ? mono.slice(0, maxSamples)
+                                    mono.length > maxS
+                                        ? mono.slice(0, maxS)
                                         : mono;
-                                S.sampleRate = decodedBuffer.sampleRate;
+                                S.sampleRate = buf.sampleRate;
                                 S.sourceLabel = file.name;
                                 S.duration = S.signal.length / S.sampleRate;
                                 S.playOffset = 0;
                                 S.audioBuffer = null;
                                 stftCacheKey = '';
-
                                 document.getElementById(
                                     'uploadZone',
                                 ).style.display = 'none';
@@ -2037,12 +2437,11 @@
                                 document.getElementById(
                                     'fileMeta',
                                 ).textContent =
-                                    `${decodedBuffer.sampleRate} Hz · ${decodedBuffer.numberOfChannels}ch · ${(decodedBuffer.length / decodedBuffer.sampleRate).toFixed(2)}s`;
+                                    `${buf.sampleRate} Hz · ${buf.numberOfChannels}ch · ${(buf.length / buf.sampleRate).toFixed(2)}s`;
                                 document
                                     .querySelectorAll('#presetBtns .btn')
                                     .forEach(b => b.classList.remove('active'));
-
-                                const nyq = decodedBuffer.sampleRate / 2;
+                                const nyq = buf.sampleRate / 2;
                                 document.getElementById('maxFreqSlider').max =
                                     nyq;
                                 if (S.maxFreq > nyq) {
@@ -2054,7 +2453,6 @@
                                         'maxFreqVal',
                                     ).textContent = S.maxFreq + ' Hz';
                                 }
-
                                 renderStaticAll();
                             },
                             function (err) {
@@ -2062,7 +2460,7 @@
                             },
                         );
                     } catch (err) {
-                        alert('Error reading file: ' + err.message);
+                        alert('Error: ' + err.message);
                     }
                 };
                 reader.readAsArrayBuffer(file);
@@ -2076,13 +2474,12 @@
             // EVENTS
             // ═══════════════════════════════════════════════════════════════════════════
 
-            function setupEvents() {
+            function setup() {
                 document
                     .getElementById('fileInput')
                     .addEventListener('change', e => {
                         if (e.target.files[0]) loadWavFile(e.target.files[0]);
                     });
-
                 const zone = document.getElementById('uploadZone');
                 zone.addEventListener('dragover', e => {
                     e.preventDefault();
@@ -2102,17 +2499,16 @@
                 );
                 document.body.addEventListener('drop', e => {
                     e.preventDefault();
-                    const f = e.dataTransfer.files[0];
-                    if (f) loadWavFile(f);
+                    if (e.dataTransfer.files[0])
+                        loadWavFile(e.dataTransfer.files[0]);
                 });
 
-                document
-                    .querySelectorAll('#presetBtns .btn')
-                    .forEach(b =>
-                        b.addEventListener('click', () =>
-                            loadPreset(b.dataset.preset),
-                        ),
-                    );
+                document.querySelectorAll('#presetBtns .btn').forEach(b =>
+                    b.addEventListener('click', () => {
+                        loadPreset(b.dataset.preset);
+                        showLesson('presets');
+                    }),
+                );
 
                 document.querySelectorAll('.tab').forEach(tab =>
                     tab.addEventListener('click', () => {
@@ -2128,7 +2524,7 @@
                         if (!S.playing) renderStaticAll();
                         else renderFrame();
                         updateParams();
-                        updateInsight();
+                        showLesson(tab.dataset.lesson);
                     }),
                 );
 
@@ -2142,6 +2538,7 @@
                             );
                         stftCacheKey = '';
                         if (!S.playing) renderStaticAll();
+                        showLesson(b.dataset.lesson);
                     }),
                 );
 
@@ -2156,6 +2553,22 @@
                         stftCacheKey = '';
                         if (!S.playing) renderStaticAll();
                         updateParams();
+                        showLesson('nfft');
+                    }),
+                );
+
+                document.querySelectorAll('#zpBtns .btn').forEach(b =>
+                    b.addEventListener('click', () => {
+                        S.zpRatio = parseInt(b.dataset.zp);
+                        document
+                            .querySelectorAll('#zpBtns .btn')
+                            .forEach(x =>
+                                x.classList.toggle('active', x === b),
+                            );
+                        stftCacheKey = '';
+                        if (!S.playing) renderStaticAll();
+                        updateParams();
+                        showLesson('zero_padding');
                     }),
                 );
 
@@ -2168,7 +2581,15 @@
                         stftCacheKey = '';
                         if (!S.playing) renderStaticAll();
                     });
-
+                document
+                    .getElementById('dynRangeSlider')
+                    .addEventListener('input', e => {
+                        S.dynRange = parseInt(e.target.value);
+                        document.getElementById('dynRangeVal').textContent =
+                            S.dynRange + ' dB';
+                        stftCacheKey = '';
+                        if (!S.playing) renderStaticAll();
+                    });
                 document
                     .getElementById('overlapSlider')
                     .addEventListener('input', e => {
@@ -2180,7 +2601,6 @@
                         updateParams();
                     });
 
-                // Seek bar
                 const seekBar = document.getElementById('seekBar');
                 let seeking = false;
                 seekBar.addEventListener('mousedown', () => {
@@ -2197,7 +2617,6 @@
                     seeking = false;
                 });
 
-                // Keyboard shortcuts
                 document.addEventListener('keydown', e => {
                     if (e.target.tagName === 'INPUT') return;
                     if (e.code === 'Space') {
@@ -2214,12 +2633,8 @@
                 });
             }
 
-            // ═══════════════════════════════════════════════════════════════════════════
-            // BOOT
-            // ═══════════════════════════════════════════════════════════════════════════
-
             loadPreset('tones');
-            setupEvents();
+            setup();
         </script>
     </body>
 </html>
