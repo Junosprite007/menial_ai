@@ -1,0 +1,2225 @@
+<!-- This file was written by Cluade 4.6 LLM via the prompt of Josh Kirby -->
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Fourier Transform Explorer — TECHIN 513A</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700&display=swap');
+
+            :root {
+                --bg: #06060b;
+                --surface: rgba(255, 255, 255, 0.025);
+                --surface-hover: rgba(255, 255, 255, 0.05);
+                --border: rgba(255, 255, 255, 0.07);
+                --border-active: #7c3aed;
+                --accent: #a78bfa;
+                --accent-dim: rgba(124, 58, 237, 0.12);
+                --green: #34d399;
+                --green-dim: rgba(52, 211, 153, 0.12);
+                --red: #f87171;
+                --amber: #fbbf24;
+                --text: #d4d4e0;
+                --text-dim: rgba(255, 255, 255, 0.4);
+                --text-dimmer: rgba(255, 255, 255, 0.22);
+                --mono: 'DM Mono', 'SF Mono', 'Fira Code', monospace;
+                --sans: 'Outfit', -apple-system, sans-serif;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            ::selection {
+                background: #7c3aed;
+                color: white;
+            }
+
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family: var(--sans);
+                min-height: 100vh;
+                padding: 28px 20px 40px;
+            }
+
+            .container {
+                max-width: 880px;
+                margin: 0 auto;
+            }
+
+            h1 {
+                font-size: 28px;
+                font-weight: 700;
+                letter-spacing: -0.03em;
+                background: linear-gradient(
+                    135deg,
+                    #c4b5fd 0%,
+                    #60a5fa 50%,
+                    #34d399 100%
+                );
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 4px;
+            }
+            .subtitle {
+                font-family: var(--mono);
+                font-size: 12px;
+                color: var(--text-dim);
+                margin-bottom: 28px;
+            }
+
+            .section {
+                margin-bottom: 24px;
+            }
+            .section-label {
+                font-family: var(--mono);
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--text-dim);
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                margin-bottom: 10px;
+            }
+
+            /* Upload */
+            .upload-zone {
+                border: 2px dashed var(--border);
+                border-radius: 12px;
+                padding: 28px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.2s;
+                background: var(--surface);
+            }
+            .upload-zone:hover,
+            .upload-zone.dragover {
+                border-color: var(--border-active);
+                background: var(--accent-dim);
+            }
+            .upload-zone input {
+                display: none;
+            }
+            .upload-icon {
+                font-size: 28px;
+                margin-bottom: 6px;
+                opacity: 0.5;
+            }
+            .upload-text {
+                font-family: var(--mono);
+                font-size: 13px;
+                color: var(--text-dim);
+            }
+            .upload-text strong {
+                color: var(--accent);
+            }
+            .upload-hint {
+                font-family: var(--mono);
+                font-size: 11px;
+                color: var(--text-dimmer);
+                margin-top: 4px;
+            }
+
+            .file-info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 10px 16px;
+                background: var(--accent-dim);
+                border: 1px solid rgba(124, 58, 237, 0.2);
+                border-radius: 10px;
+                font-family: var(--mono);
+                font-size: 12px;
+            }
+            .file-info .name {
+                color: var(--accent);
+                font-weight: 500;
+                flex: 1;
+            }
+            .file-info .meta {
+                color: var(--text-dim);
+            }
+            .file-info button {
+                background: none;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: var(--text-dim);
+                border-radius: 6px;
+                padding: 4px 10px;
+                cursor: pointer;
+                font-family: var(--mono);
+                font-size: 11px;
+            }
+            .file-info button:hover {
+                border-color: var(--accent);
+                color: var(--accent);
+            }
+
+            /* Buttons */
+            .btn-group {
+                display: flex;
+                gap: 5px;
+                flex-wrap: wrap;
+            }
+            .btn {
+                font-family: var(--mono);
+                font-size: 11px;
+                padding: 6px 13px;
+                border-radius: 6px;
+                border: 1px solid var(--border);
+                background: var(--surface);
+                color: var(--text-dim);
+                cursor: pointer;
+                transition: all 0.12s;
+                white-space: nowrap;
+            }
+            .btn:hover {
+                background: var(--surface-hover);
+                color: var(--text);
+            }
+            .btn.active {
+                border-color: var(--border-active);
+                background: var(--accent-dim);
+                color: var(--accent);
+            }
+
+            /* Transport controls */
+            .transport {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 16px;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                margin-bottom: 12px;
+            }
+            .transport-btn {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                border: 1px solid var(--border);
+                background: var(--surface);
+                color: var(--text-dim);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+                transition: all 0.15s;
+            }
+            .transport-btn:hover {
+                border-color: var(--accent);
+                color: var(--accent);
+                background: var(--accent-dim);
+            }
+            .transport-btn.playing {
+                border-color: var(--green);
+                background: var(--green-dim);
+                color: var(--green);
+                box-shadow: 0 0 12px rgba(52, 211, 153, 0.15);
+            }
+            .transport-time {
+                font-family: var(--mono);
+                font-size: 13px;
+                color: var(--accent);
+                min-width: 100px;
+                font-weight: 500;
+            }
+            .transport-seek {
+                flex: 1;
+                -webkit-appearance: none;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 2px;
+                outline: none;
+                accent-color: #7c3aed;
+            }
+            .transport-seek::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: var(--accent);
+                cursor: pointer;
+                border: 2px solid var(--bg);
+            }
+
+            /* Analysis toggle */
+            .analysis-toggle {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-left: auto;
+            }
+            .analysis-toggle span {
+                font-family: var(--mono);
+                font-size: 11px;
+                color: var(--text-dim);
+            }
+            .toggle-switch {
+                width: 42px;
+                height: 22px;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid var(--border);
+                cursor: pointer;
+                position: relative;
+                transition: all 0.2s;
+            }
+            .toggle-switch.on {
+                background: var(--accent-dim);
+                border-color: var(--border-active);
+            }
+            .toggle-switch .knob {
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: var(--text-dim);
+                position: absolute;
+                top: 2px;
+                left: 2px;
+                transition: all 0.2s;
+            }
+            .toggle-switch.on .knob {
+                left: 22px;
+                background: var(--accent);
+                box-shadow: 0 0 8px rgba(167, 139, 250, 0.3);
+            }
+
+            /* Sliders */
+            .slider-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 10px;
+            }
+            .slider-label {
+                font-family: var(--mono);
+                font-size: 11px;
+                color: var(--text-dim);
+                min-width: 120px;
+            }
+            .slider-value {
+                font-family: var(--mono);
+                font-size: 12px;
+                color: var(--accent);
+                min-width: 70px;
+                text-align: right;
+                font-weight: 500;
+            }
+            input[type='range'] {
+                flex: 1;
+                -webkit-appearance: none;
+                height: 3px;
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 2px;
+                outline: none;
+            }
+            input[type='range']::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                background: var(--accent);
+                cursor: pointer;
+                border: 2px solid var(--bg);
+            }
+
+            /* Tabs */
+            .tabs {
+                display: flex;
+                gap: 2px;
+                background: var(--surface);
+                border-radius: 10px;
+                padding: 3px;
+                margin-bottom: 16px;
+            }
+            .tab {
+                flex: 1;
+                padding: 10px 14px;
+                border-radius: 8px;
+                border: none;
+                background: transparent;
+                color: var(--text-dim);
+                font-family: var(--mono);
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.15s;
+            }
+            .tab.active {
+                background: var(--accent-dim);
+                color: var(--accent);
+            }
+
+            /* Canvas */
+            .canvas-wrap {
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid var(--border);
+                margin-bottom: 4px;
+                position: relative;
+            }
+            .canvas-wrap canvas {
+                display: block;
+                width: 100%;
+            }
+            .canvas-caption {
+                font-family: var(--mono);
+                font-size: 10px;
+                color: var(--text-dimmer);
+                margin-bottom: 16px;
+            }
+
+            /* Live indicator */
+            .live-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                font-family: var(--mono);
+                font-size: 10px;
+                color: var(--green);
+                padding: 3px 8px;
+                background: var(--green-dim);
+                border-radius: 4px;
+                margin-left: 8px;
+            }
+            .live-dot {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--green);
+                animation: pulse 1.2s infinite;
+            }
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.3;
+                }
+            }
+
+            /* Param cards */
+            .param-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+            .param-card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 10px 14px;
+                flex: 1 1 130px;
+                min-width: 125px;
+            }
+            .param-card .label {
+                font-family: var(--mono);
+                font-size: 10px;
+                color: var(--text-dim);
+                margin-bottom: 2px;
+            }
+            .param-card .value {
+                font-family: var(--mono);
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--accent);
+            }
+            .param-card .value .unit {
+                font-size: 11px;
+                color: var(--text-dim);
+                font-weight: 400;
+                margin-left: 2px;
+            }
+            .param-card .detail {
+                font-family: var(--mono);
+                font-size: 10px;
+                color: var(--text-dimmer);
+                margin-top: 2px;
+            }
+
+            /* Insight */
+            .insight {
+                background: rgba(124, 58, 237, 0.05);
+                border: 1px solid rgba(124, 58, 237, 0.12);
+                border-radius: 10px;
+                padding: 16px 18px;
+                margin-bottom: 24px;
+            }
+            .insight h3 {
+                font-family: var(--mono);
+                font-size: 12px;
+                color: var(--accent);
+                margin-bottom: 6px;
+            }
+            .insight p {
+                font-size: 13px;
+                color: rgba(255, 255, 255, 0.5);
+                line-height: 1.65;
+            }
+            .insight code {
+                color: var(--accent);
+                font-family: var(--mono);
+                font-size: 12px;
+            }
+
+            .controls-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+                margin-bottom: 16px;
+            }
+            @media (max-width: 640px) {
+                .controls-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+            .control-group label {
+                display: block;
+                font-family: var(--mono);
+                font-size: 11px;
+                color: var(--text-dim);
+                margin-bottom: 6px;
+            }
+
+            .footer {
+                text-align: center;
+                font-family: var(--mono);
+                font-size: 10px;
+                color: var(--text-dimmer);
+                padding-top: 20px;
+            }
+
+            .presets-row {
+                margin-bottom: 14px;
+            }
+
+            /* Analysis-off overlay text */
+            .analysis-off-label {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-family: var(--mono);
+                font-size: 13px;
+                color: var(--text-dimmer);
+                pointer-events: none;
+                text-align: center;
+                line-height: 1.8;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Fourier Transform Explorer</h1>
+            <p class="subtitle">
+                Load a .wav → play it → watch the FFT / STFT animate in real
+                time → toggle analysis on/off
+            </p>
+
+            <!-- Upload -->
+            <div class="section">
+                <div class="section-label">Audio Source</div>
+                <div
+                    id="uploadZone"
+                    class="upload-zone"
+                    onclick="document.getElementById('fileInput').click()"
+                >
+                    <input
+                        type="file"
+                        id="fileInput"
+                        accept=".wav,.mp3,.ogg,.flac,.m4a"
+                    />
+                    <div class="upload-icon">🎙</div>
+                    <div class="upload-text">
+                        Drop an <strong>audio file</strong> here or click to
+                        browse
+                    </div>
+                    <div class="upload-hint">
+                        WAV · MP3 · OGG · FLAC · M4A · mono or stereo · any
+                        sample rate
+                    </div>
+                </div>
+                <div id="fileInfo" class="file-info" style="display: none">
+                    <span class="name" id="fileName"></span>
+                    <span class="meta" id="fileMeta"></span>
+                    <button onclick="resetToSynthetic()">Clear</button>
+                </div>
+                <div class="presets-row" style="margin-top: 12px">
+                    <div class="section-label">Or use a synthetic signal</div>
+                    <div class="btn-group" id="presetBtns">
+                        <button class="btn active" data-preset="tones">
+                            440 + 1000 + 2500 Hz
+                        </button>
+                        <button class="btn" data-preset="chirp">
+                            Chirp 100→4000 Hz
+                        </button>
+                        <button class="btn" data-preset="impulses">
+                            Impulses
+                        </button>
+                        <button class="btn" data-preset="chord">
+                            C Major Chord
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transport -->
+            <div class="section">
+                <div class="section-label">Playback</div>
+                <div class="transport">
+                    <button
+                        class="transport-btn"
+                        id="playBtn"
+                        title="Play / Pause"
+                        onclick="togglePlay()"
+                    >
+                        ▶
+                    </button>
+                    <button
+                        class="transport-btn"
+                        id="stopBtn"
+                        title="Stop"
+                        onclick="stopPlayback()"
+                    >
+                        ■
+                    </button>
+                    <span class="transport-time" id="timeDisplay"
+                        >0:00.000 / 0:00.000</span
+                    >
+                    <input
+                        type="range"
+                        class="transport-seek"
+                        id="seekBar"
+                        min="0"
+                        max="1000"
+                        value="0"
+                        step="1"
+                    />
+                    <div class="analysis-toggle">
+                        <span>Analysis</span>
+                        <div
+                            class="toggle-switch on"
+                            id="analysisToggle"
+                            onclick="toggleAnalysis()"
+                        >
+                            <div class="knob"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Waveform -->
+            <div class="section">
+                <div class="section-label">
+                    Time Domain — Waveform
+                    <span
+                        class="live-badge"
+                        id="liveBadge"
+                        style="display: none"
+                        ><span class="live-dot"></span>LIVE</span
+                    >
+                </div>
+                <div class="canvas-wrap">
+                    <canvas id="waveformCanvas" height="110"></canvas>
+                </div>
+                <div class="canvas-caption" id="waveformCaption"></div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" data-tab="fft">
+                    FFT — Frequency Spectrum
+                </button>
+                <button class="tab" data-tab="stft">STFT — Spectrogram</button>
+            </div>
+
+            <!-- Controls -->
+            <div class="section">
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label>Window Function</label>
+                        <div class="btn-group" id="windowBtns">
+                            <button class="btn" data-win="rectangular">
+                                rectangular
+                            </button>
+                            <button class="btn active" data-win="hann">
+                                hann
+                            </button>
+                            <button class="btn" data-win="hamming">
+                                hamming
+                            </button>
+                            <button class="btn" data-win="blackman">
+                                blackman
+                            </button>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="slider-row">
+                            <span class="slider-label">Max display freq</span>
+                            <input
+                                type="range"
+                                id="maxFreqSlider"
+                                min="500"
+                                max="22050"
+                                step="250"
+                                value="8000"
+                            />
+                            <span class="slider-value" id="maxFreqVal"
+                                >8000 Hz</span
+                            >
+                        </div>
+                    </div>
+                </div>
+                <div id="stftControls" style="display: none">
+                    <div class="controls-grid">
+                        <div class="control-group">
+                            <label>n_fft (window size)</label>
+                            <div class="btn-group" id="nfftBtns">
+                                <button class="btn" data-nfft="128">128</button>
+                                <button class="btn" data-nfft="256">256</button>
+                                <button class="btn" data-nfft="512">512</button>
+                                <button class="btn active" data-nfft="1024">
+                                    1024
+                                </button>
+                                <button class="btn" data-nfft="2048">
+                                    2048
+                                </button>
+                                <button class="btn" data-nfft="4096">
+                                    4096
+                                </button>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="slider-row">
+                                <span class="slider-label">Overlap</span>
+                                <input
+                                    type="range"
+                                    id="overlapSlider"
+                                    min="0"
+                                    max="90"
+                                    step="5"
+                                    value="75"
+                                />
+                                <span class="slider-value" id="overlapVal"
+                                    >75%</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main visualization -->
+            <div class="section">
+                <div class="canvas-wrap" id="mainCanvasWrap">
+                    <canvas id="mainCanvas" height="300"></canvas>
+                    <div
+                        class="analysis-off-label"
+                        id="analysisOffLabel"
+                        style="display: none"
+                    >
+                        Analysis OFF<br />Toggle on to see FFT / STFT
+                    </div>
+                </div>
+                <div class="canvas-caption" id="mainCaption"></div>
+            </div>
+
+            <!-- Live spectrum (shown during playback when analysis is on) -->
+            <div class="section" id="liveSpecSection" style="display: none">
+                <div class="section-label">
+                    Live Spectrum at Playhead
+                    <span class="live-badge"
+                        ><span class="live-dot"></span>REAL-TIME</span
+                    >
+                </div>
+                <div class="canvas-wrap">
+                    <canvas id="liveSpecCanvas" height="180"></canvas>
+                </div>
+                <div class="canvas-caption" id="liveSpecCaption"></div>
+            </div>
+
+            <!-- Params -->
+            <div class="section">
+                <div class="section-label">Computed Parameters</div>
+                <div class="param-grid" id="paramGrid"></div>
+            </div>
+
+            <!-- Insight -->
+            <div class="insight" id="insightBox"></div>
+
+            <div class="footer">
+                TECHIN 513A · Fourier Transform Fundamentals · Joshua Kirby &
+                Alan Nur
+            </div>
+        </div>
+
+        <script>
+            // ═══════════════════════════════════════════════════════════════════════════
+            // DSP CORE
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            function getWindow(type, size) {
+                const w = new Float64Array(size);
+                for (let n = 0; n < size; n++) {
+                    switch (type) {
+                        case 'rectangular':
+                            w[n] = 1;
+                            break;
+                        case 'hann':
+                            w[n] =
+                                0.5 *
+                                (1 - Math.cos((2 * Math.PI * n) / (size - 1)));
+                            break;
+                        case 'hamming':
+                            w[n] =
+                                0.54 -
+                                0.46 * Math.cos((2 * Math.PI * n) / (size - 1));
+                            break;
+                        case 'blackman':
+                            w[n] =
+                                0.42 -
+                                0.5 * Math.cos((2 * Math.PI * n) / (size - 1)) +
+                                0.08 * Math.cos((4 * Math.PI * n) / (size - 1));
+                            break;
+                    }
+                }
+                return w;
+            }
+
+            function fftInPlace(re, im) {
+                const n = re.length;
+                if (n <= 1) return;
+                for (let i = 1, j = 0; i < n; i++) {
+                    let bit = n >> 1;
+                    for (; j & bit; bit >>= 1) j ^= bit;
+                    j ^= bit;
+                    if (i < j) {
+                        [re[i], re[j]] = [re[j], re[i]];
+                        [im[i], im[j]] = [im[j], im[i]];
+                    }
+                }
+                for (let len = 2; len <= n; len <<= 1) {
+                    const ang = (-2 * Math.PI) / len;
+                    const wRe = Math.cos(ang),
+                        wIm = Math.sin(ang);
+                    for (let i = 0; i < n; i += len) {
+                        let curRe = 1,
+                            curIm = 0;
+                        for (let j = 0; j < len / 2; j++) {
+                            const uRe = re[i + j],
+                                uIm = im[i + j];
+                            const vRe =
+                                re[i + j + len / 2] * curRe -
+                                im[i + j + len / 2] * curIm;
+                            const vIm =
+                                re[i + j + len / 2] * curIm +
+                                im[i + j + len / 2] * curRe;
+                            re[i + j] = uRe + vRe;
+                            im[i + j] = uIm + vIm;
+                            re[i + j + len / 2] = uRe - vRe;
+                            im[i + j + len / 2] = uIm - vIm;
+                            const nRe = curRe * wRe - curIm * wIm;
+                            curIm = curRe * wIm + curIm * wRe;
+                            curRe = nRe;
+                        }
+                    }
+                }
+            }
+
+            function computeFFTSlice(signal, start, size, windowType) {
+                let n = 1;
+                while (n < size) n <<= 1;
+                const win = getWindow(windowType, size);
+                const re = new Float64Array(n);
+                const im = new Float64Array(n);
+                for (let i = 0; i < size; i++) {
+                    const idx = start + i;
+                    if (idx >= 0 && idx < signal.length)
+                        re[i] = signal[idx] * win[i];
+                }
+                fftInPlace(re, im);
+                const half = n / 2 + 1;
+                const mag = new Float64Array(half);
+                for (let i = 0; i < half; i++)
+                    mag[i] = Math.sqrt(re[i] * re[i] + im[i] * im[i]);
+                return { mag, n };
+            }
+
+            function computeFullFFT(signal, windowType, sampleRate) {
+                let n = 1;
+                while (n < signal.length) n <<= 1;
+                const win = getWindow(windowType, signal.length);
+                const re = new Float64Array(n);
+                const im = new Float64Array(n);
+                for (let i = 0; i < signal.length; i++)
+                    re[i] = signal[i] * win[i];
+                fftInPlace(re, im);
+                const half = n / 2 + 1;
+                const mag = new Float64Array(half);
+                const freqs = new Float64Array(half);
+                for (let i = 0; i < half; i++) {
+                    mag[i] = Math.sqrt(re[i] * re[i] + im[i] * im[i]);
+                    freqs[i] = (i * sampleRate) / n;
+                }
+                return { mag, freqs, n };
+            }
+
+            function computeSTFT(signal, nfft, hop, windowType, sampleRate) {
+                const win = getWindow(windowType, nfft);
+                let fftSize = 1;
+                while (fftSize < nfft) fftSize <<= 1;
+                const numFrames = Math.max(
+                    1,
+                    Math.floor((signal.length - nfft) / hop) + 1,
+                );
+                const numBins = fftSize / 2 + 1;
+                const spec = [];
+                for (let f = 0; f < numFrames; f++) {
+                    const start = f * hop;
+                    const re = new Float64Array(fftSize);
+                    const im = new Float64Array(fftSize);
+                    for (let i = 0; i < nfft && start + i < signal.length; i++)
+                        re[i] = signal[start + i] * win[i];
+                    fftInPlace(re, im);
+                    const m = new Float64Array(numBins);
+                    for (let i = 0; i < numBins; i++)
+                        m[i] = Math.sqrt(re[i] * re[i] + im[i] * im[i]);
+                    spec.push(m);
+                }
+                return { spec, numBins, numFrames, fftSize };
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // WAV PARSER
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            function parseWav(buffer) {
+                const view = new DataView(buffer);
+                const riff = String.fromCharCode(
+                    view.getUint8(0),
+                    view.getUint8(1),
+                    view.getUint8(2),
+                    view.getUint8(3),
+                );
+                if (riff !== 'RIFF') throw new Error('Not a valid WAV file');
+                const wave = String.fromCharCode(
+                    view.getUint8(8),
+                    view.getUint8(9),
+                    view.getUint8(10),
+                    view.getUint8(11),
+                );
+                if (wave !== 'WAVE') throw new Error('Not a valid WAV file');
+
+                let offset = 12,
+                    fmtFound = false;
+                let audioFormat,
+                    numChannels,
+                    sampleRate,
+                    bitsPerSample,
+                    dataOffset,
+                    dataSize;
+
+                while (offset < buffer.byteLength - 8) {
+                    const id = String.fromCharCode(
+                        view.getUint8(offset),
+                        view.getUint8(offset + 1),
+                        view.getUint8(offset + 2),
+                        view.getUint8(offset + 3),
+                    );
+                    const size = view.getUint32(offset + 4, true);
+                    if (id === 'fmt ') {
+                        audioFormat = view.getUint16(offset + 8, true);
+                        numChannels = view.getUint16(offset + 10, true);
+                        sampleRate = view.getUint32(offset + 12, true);
+                        bitsPerSample = view.getUint16(offset + 22, true);
+                        fmtFound = true;
+                    } else if (id === 'data') {
+                        dataOffset = offset + 8;
+                        dataSize = size;
+                    }
+                    offset += 8 + size;
+                    if (offset % 2 !== 0) offset++;
+                }
+
+                if (!fmtFound || dataOffset === undefined)
+                    throw new Error('Malformed WAV');
+                if (audioFormat !== 1 && audioFormat !== 3)
+                    throw new Error(
+                        'Only PCM WAV supported (got format ' +
+                            audioFormat +
+                            ')',
+                    );
+
+                const bytesPerSample = bitsPerSample / 8;
+                const numSamples = Math.floor(
+                    dataSize / (bytesPerSample * numChannels),
+                );
+                const signal = new Float64Array(numSamples);
+
+                for (let i = 0; i < numSamples; i++) {
+                    let val = 0;
+                    for (let ch = 0; ch < numChannels; ch++) {
+                        const pos =
+                            dataOffset +
+                            (i * numChannels + ch) * bytesPerSample;
+                        if (pos + bytesPerSample > buffer.byteLength) break;
+                        if (audioFormat === 3) {
+                            val +=
+                                bytesPerSample === 4
+                                    ? view.getFloat32(pos, true)
+                                    : view.getFloat64(pos, true);
+                        } else {
+                            if (bitsPerSample === 16)
+                                val += view.getInt16(pos, true) / 32768;
+                            else if (bitsPerSample === 24) {
+                                let s =
+                                    view.getUint8(pos) |
+                                    (view.getUint8(pos + 1) << 8) |
+                                    (view.getUint8(pos + 2) << 16);
+                                if (s & 0x800000) s |= ~0xffffff;
+                                val += s / 8388608;
+                            } else if (bitsPerSample === 32)
+                                val += view.getInt32(pos, true) / 2147483648;
+                            else if (bitsPerSample === 8)
+                                val += (view.getUint8(pos) - 128) / 128;
+                        }
+                    }
+                    signal[i] = val / numChannels;
+                }
+                return {
+                    signal,
+                    sampleRate,
+                    numChannels,
+                    bitsPerSample,
+                    numSamples,
+                };
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // SIGNAL GENERATORS
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            function genTones(fs, dur) {
+                const N = Math.floor(fs * dur),
+                    s = new Float64Array(N);
+                for (let i = 0; i < N; i++) {
+                    const t = i / fs;
+                    s[i] =
+                        0.7 * Math.sin(2 * Math.PI * 440 * t) +
+                        0.5 * Math.sin(2 * Math.PI * 1000 * t) +
+                        0.3 * Math.sin(2 * Math.PI * 2500 * t) +
+                        0.05 * (Math.random() * 2 - 1);
+                }
+                return s;
+            }
+            function genChirp(fs, dur) {
+                const N = Math.floor(fs * dur),
+                    s = new Float64Array(N);
+                for (let i = 0; i < N; i++) {
+                    const t = i / fs;
+                    s[i] =
+                        0.8 *
+                        Math.sin(
+                            2 *
+                                Math.PI *
+                                (100 * t + (0.5 * (4000 - 100) * t * t) / dur),
+                        );
+                }
+                return s;
+            }
+            function genImpulses(fs, dur) {
+                const N = Math.floor(fs * dur),
+                    s = new Float64Array(N);
+                const iv = Math.floor(fs * 0.35);
+                for (let i = 0; i < N; i++) {
+                    const m = i % iv;
+                    if (m < Math.floor(fs * 0.012))
+                        s[i] = 0.9 * Math.exp(-m / (fs * 0.003));
+                }
+                return s;
+            }
+            function genChord(fs, dur) {
+                const fr = [261.63, 329.63, 392, 523.25, 659.25, 784],
+                    am = [0.5, 0.4, 0.45, 0.25, 0.2, 0.22];
+                const N = Math.floor(fs * dur),
+                    s = new Float64Array(N);
+                for (let i = 0; i < N; i++) {
+                    const t = i / fs;
+                    for (let f = 0; f < fr.length; f++)
+                        s[i] += am[f] * Math.sin(2 * Math.PI * fr[f] * t);
+                    s[i] += 0.03 * (Math.random() * 2 - 1);
+                }
+                return s;
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // COLORMAP
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            const MAGMA = [
+                [0, 0, 4],
+                [1, 0, 11],
+                [3, 1, 22],
+                [7, 2, 36],
+                [14, 4, 52],
+                [24, 6, 68],
+                [38, 9, 82],
+                [53, 12, 90],
+                [68, 15, 94],
+                [84, 18, 96],
+                [100, 22, 96],
+                [116, 25, 93],
+                [132, 29, 89],
+                [149, 33, 84],
+                [165, 38, 79],
+                [181, 44, 73],
+                [196, 51, 67],
+                [210, 60, 60],
+                [222, 72, 53],
+                [232, 86, 46],
+                [240, 101, 39],
+                [246, 118, 33],
+                [250, 136, 29],
+                [252, 155, 27],
+                [252, 174, 30],
+                [250, 194, 39],
+                [247, 214, 55],
+                [244, 233, 79],
+                [245, 249, 107],
+                [252, 253, 191],
+            ];
+            function magma(val) {
+                const t = Math.max(0, Math.min(1, val));
+                const idx = t * (MAGMA.length - 1);
+                const lo = Math.floor(idx),
+                    hi = Math.min(lo + 1, MAGMA.length - 1),
+                    f = idx - lo;
+                return [
+                    Math.round(
+                        MAGMA[lo][0] + (MAGMA[hi][0] - MAGMA[lo][0]) * f,
+                    ),
+                    Math.round(
+                        MAGMA[lo][1] + (MAGMA[hi][1] - MAGMA[lo][1]) * f,
+                    ),
+                    Math.round(
+                        MAGMA[lo][2] + (MAGMA[hi][2] - MAGMA[lo][2]) * f,
+                    ),
+                ];
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // APP STATE
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            const S = {
+                signal: null,
+                sampleRate: 44100,
+                sourceLabel: '',
+                preset: 'tones',
+                tab: 'fft',
+                windowType: 'hann',
+                maxFreq: 8000,
+                nfft: 1024,
+                overlapPct: 75,
+                analysisOn: true,
+                // Playback
+                playing: false,
+                playStartTime: 0,
+                playOffset: 0, // where in the audio (seconds) playback started from
+                duration: 0,
+                audioCtx: null,
+                sourceNode: null,
+                audioBuffer: null,
+                animFrame: null,
+                // Cached STFT for static view
+                stftData: null,
+                hoverFrame: -1,
+            };
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // AUDIO PLAYBACK (Web Audio API)
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            function ensureAudioCtx() {
+                if (!S.audioCtx)
+                    S.audioCtx = new (
+                        window.AudioContext || window.webkitAudioContext
+                    )();
+                if (S.audioCtx.state === 'suspended') S.audioCtx.resume();
+                return S.audioCtx;
+            }
+
+            function buildAudioBuffer() {
+                const ctx = ensureAudioCtx();
+                const buf = ctx.createBuffer(1, S.signal.length, S.sampleRate);
+                const ch = buf.getChannelData(0);
+                for (let i = 0; i < S.signal.length; i++) ch[i] = S.signal[i];
+                S.audioBuffer = buf;
+                S.duration = S.signal.length / S.sampleRate;
+            }
+
+            function togglePlay() {
+                if (S.playing) {
+                    pausePlayback();
+                } else {
+                    startPlayback();
+                }
+            }
+
+            function startPlayback() {
+                if (!S.signal || S.signal.length === 0) return;
+                ensureAudioCtx();
+                if (!S.audioBuffer) buildAudioBuffer();
+
+                // If at end, restart
+                if (S.playOffset >= S.duration - 0.01) S.playOffset = 0;
+
+                const src = S.audioCtx.createBufferSource();
+                src.buffer = S.audioBuffer;
+                src.connect(S.audioCtx.destination);
+                src.onended = () => {
+                    if (S.playing) {
+                        S.playing = false;
+                        S.playOffset = S.duration;
+                        updateTransportUI();
+                        stopAnimationLoop();
+                    }
+                };
+                src.start(0, S.playOffset);
+                S.sourceNode = src;
+                S.playStartTime = S.audioCtx.currentTime;
+                S.playing = true;
+
+                updateTransportUI();
+                startAnimationLoop();
+            }
+
+            function pausePlayback() {
+                if (!S.playing) return;
+                S.playOffset = getCurrentTime();
+                if (S.sourceNode) {
+                    try {
+                        S.sourceNode.stop();
+                    } catch (e) {}
+                    S.sourceNode = null;
+                }
+                S.playing = false;
+                updateTransportUI();
+                stopAnimationLoop();
+                renderFrame(); // one final render at pause position
+            }
+
+            function stopPlayback() {
+                if (S.sourceNode) {
+                    try {
+                        S.sourceNode.stop();
+                    } catch (e) {}
+                    S.sourceNode = null;
+                }
+                S.playing = false;
+                S.playOffset = 0;
+                updateTransportUI();
+                stopAnimationLoop();
+                renderStaticAll();
+            }
+
+            function getCurrentTime() {
+                if (!S.playing) return S.playOffset;
+                const elapsed = S.audioCtx.currentTime - S.playStartTime;
+                return Math.min(S.playOffset + elapsed, S.duration);
+            }
+
+            function seekTo(frac) {
+                const wasPlaying = S.playing;
+                if (wasPlaying) {
+                    if (S.sourceNode) {
+                        try {
+                            S.sourceNode.stop();
+                        } catch (e) {}
+                        S.sourceNode = null;
+                    }
+                    S.playing = false;
+                }
+                S.playOffset = frac * S.duration;
+                if (wasPlaying) {
+                    startPlayback();
+                } else {
+                    updateTransportUI();
+                    renderFrame();
+                }
+            }
+
+            function formatTime(s) {
+                const m = Math.floor(s / 60);
+                const sec = s - m * 60;
+                return m + ':' + sec.toFixed(3).padStart(6, '0');
+            }
+
+            function updateTransportUI() {
+                const btn = document.getElementById('playBtn');
+                btn.textContent = S.playing ? '⏸' : '▶';
+                btn.classList.toggle('playing', S.playing);
+                document.getElementById('liveBadge').style.display = S.playing
+                    ? ''
+                    : 'none';
+                document.getElementById('liveSpecSection').style.display =
+                    S.playing && S.analysisOn ? '' : 'none';
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // ANIMATION LOOP
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            function startAnimationLoop() {
+                function loop() {
+                    if (!S.playing) return;
+                    renderFrame();
+                    S.animFrame = requestAnimationFrame(loop);
+                }
+                S.animFrame = requestAnimationFrame(loop);
+            }
+
+            function stopAnimationLoop() {
+                if (S.animFrame) {
+                    cancelAnimationFrame(S.animFrame);
+                    S.animFrame = null;
+                }
+            }
+
+            function renderFrame() {
+                const t = getCurrentTime();
+                const frac = S.duration > 0 ? t / S.duration : 0;
+
+                // Update seek bar and time
+                document.getElementById('seekBar').value = Math.round(
+                    frac * 1000,
+                );
+                document.getElementById('timeDisplay').textContent =
+                    formatTime(t) + ' / ' + formatTime(S.duration);
+
+                drawWaveform(frac);
+
+                if (S.analysisOn) {
+                    if (S.tab === 'fft') drawFFTStatic(frac);
+                    else drawSTFTStatic(frac);
+                    if (S.playing) drawLiveSpectrum(t);
+                } else {
+                    drawAnalysisOff();
+                }
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // STATIC RENDER (when not playing)
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            function renderStaticAll() {
+                const frac = S.duration > 0 ? S.playOffset / S.duration : 0;
+                document.getElementById('seekBar').value = Math.round(
+                    frac * 1000,
+                );
+                document.getElementById('timeDisplay').textContent =
+                    formatTime(S.playOffset) + ' / ' + formatTime(S.duration);
+
+                drawWaveform(frac);
+                if (S.analysisOn) {
+                    if (S.tab === 'fft') drawFFTStatic(frac);
+                    else drawSTFTStatic(frac);
+                } else {
+                    drawAnalysisOff();
+                }
+                document.getElementById('liveSpecSection').style.display =
+                    S.playing && S.analysisOn ? '' : 'none';
+                updateParams();
+                updateInsight();
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // DRAWING
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            function getCanvasCtx(id, h) {
+                const canvas = document.getElementById(id);
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.parentElement.getBoundingClientRect();
+                const W = rect.width;
+                canvas.width = W * dpr;
+                canvas.height = h * dpr;
+                canvas.style.height = h + 'px';
+                const ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+                return { ctx, W, H: h };
+            }
+
+            function drawWaveform(playFrac) {
+                const { ctx, W, H } = getCanvasCtx('waveformCanvas', 110);
+                ctx.fillStyle = '#0a0a0f';
+                ctx.fillRect(0, 0, W, H);
+
+                if (!S.signal) return;
+                const sig = S.signal;
+
+                // Draw waveform
+                ctx.beginPath();
+                ctx.strokeStyle = '#60a5fa';
+                ctx.lineWidth = 0.7;
+                const step = Math.max(1, Math.floor(sig.length / W));
+                for (let px = 0; px < W; px++) {
+                    const idx = Math.floor((px / W) * sig.length);
+                    let mn = Infinity,
+                        mx = -Infinity;
+                    for (let j = 0; j < step && idx + j < sig.length; j++) {
+                        mn = Math.min(mn, sig[idx + j]);
+                        mx = Math.max(mx, sig[idx + j]);
+                    }
+                    const y1 = H / 2 - mx * H * 0.44,
+                        y2 = H / 2 - mn * H * 0.44;
+                    if (px === 0) ctx.moveTo(px, y1);
+                    ctx.lineTo(px, y1);
+                    ctx.lineTo(px, y2);
+                }
+                ctx.stroke();
+
+                // Center line
+                ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(0, H / 2);
+                ctx.lineTo(W, H / 2);
+                ctx.stroke();
+
+                // Playhead
+                if (playFrac !== undefined && playFrac >= 0) {
+                    const x = playFrac * W;
+                    ctx.strokeStyle = S.playing
+                        ? '#34d399'
+                        : 'rgba(167,139,250,0.6)';
+                    ctx.lineWidth = S.playing ? 2 : 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, H);
+                    ctx.stroke();
+
+                    // If STFT mode and analysis on, show window highlight
+                    if (S.tab === 'stft' && S.analysisOn) {
+                        const samplePos = playFrac * sig.length;
+                        const halfWin = S.nfft / 2;
+                        const x0 = ((samplePos - halfWin) / sig.length) * W;
+                        const x1 = ((samplePos + halfWin) / sig.length) * W;
+                        ctx.fillStyle = 'rgba(99,102,241,0.12)';
+                        ctx.fillRect(x0, 0, x1 - x0, H);
+                        ctx.strokeStyle = 'rgba(99,102,241,0.3)';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(x0, 0, x1 - x0, H);
+                    }
+                }
+
+                const dur = (sig.length / S.sampleRate).toFixed(2);
+                document.getElementById('waveformCaption').textContent =
+                    `${S.sourceLabel} · ${sig.length.toLocaleString()} samples · ${S.sampleRate} Hz · ${dur}s`;
+            }
+
+            function drawFFTStatic(playFrac) {
+                document.getElementById('analysisOffLabel').style.display =
+                    'none';
+                const { ctx, W, H } = getCanvasCtx('mainCanvas', 280);
+                ctx.fillStyle = '#0a0a0f';
+                ctx.fillRect(0, 0, W, H);
+
+                if (!S.signal) return;
+
+                // If playing, compute FFT at playhead position; else full signal
+                let mag, freqs, n;
+                if (playFrac !== undefined && playFrac > 0 && playFrac < 1) {
+                    const center = Math.floor(playFrac * S.signal.length);
+                    const start = Math.max(0, center - Math.floor(S.nfft / 2));
+                    const result = computeFFTSlice(
+                        S.signal,
+                        start,
+                        S.nfft,
+                        S.windowType,
+                    );
+                    mag = result.mag;
+                    n = result.n;
+                    freqs = new Float64Array(mag.length);
+                    for (let i = 0; i < mag.length; i++)
+                        freqs[i] = (i * S.sampleRate) / n;
+                } else {
+                    const result = computeFullFFT(
+                        S.signal,
+                        S.windowType,
+                        S.sampleRate,
+                    );
+                    mag = result.mag;
+                    freqs = result.freqs;
+                    n = result.n;
+                }
+
+                const displayMax = Math.min(S.maxFreq, S.sampleRate / 2);
+                let maxDb = -Infinity;
+                const magDb = [];
+                for (let i = 0; i < mag.length; i++) {
+                    const db = 20 * Math.log10(mag[i] + 1e-10);
+                    if (db > maxDb) maxDb = db;
+                    magDb.push(db);
+                }
+                const minDb = maxDb - 80;
+
+                const pad = { l: 52, r: 14, t: 14, b: 34 };
+                const pW = W - pad.l - pad.r,
+                    pH = H - pad.t - pad.b;
+
+                // Grid
+                ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+                ctx.lineWidth = 0.5;
+                const fStep = displayMax > 4000 ? 1000 : 500;
+                for (let f = 0; f <= displayMax; f += fStep) {
+                    const x = pad.l + (f / displayMax) * pW;
+                    ctx.beginPath();
+                    ctx.moveTo(x, pad.t);
+                    ctx.lineTo(x, pad.t + pH);
+                    ctx.stroke();
+                }
+
+                // FFT curve
+                ctx.beginPath();
+                ctx.strokeStyle = '#a78bfa';
+                ctx.lineWidth = 1.2;
+                for (let i = 0; i < mag.length; i++) {
+                    if (freqs[i] > displayMax) break;
+                    const x = pad.l + (freqs[i] / displayMax) * pW;
+                    const norm = Math.max(
+                        0,
+                        (magDb[i] - minDb) / (maxDb - minDb),
+                    );
+                    const y = pad.t + pH - norm * pH;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                ctx.lineTo(pad.l + pW, pad.t + pH);
+                ctx.lineTo(pad.l, pad.t + pH);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(167,139,250,0.05)';
+                ctx.fill();
+
+                // Axis
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.font = '10px "DM Mono", monospace';
+                ctx.textAlign = 'center';
+                for (
+                    let f = 0;
+                    f <= displayMax;
+                    f += displayMax > 4000 ? 2000 : 1000
+                )
+                    ctx.fillText(f + '', pad.l + (f / displayMax) * pW, H - 8);
+                ctx.textAlign = 'right';
+                ctx.fillText(maxDb.toFixed(0) + ' dB', pad.l - 4, pad.t + 12);
+                ctx.fillText(
+                    minDb.toFixed(0) + ' dB',
+                    pad.l - 4,
+                    pad.t + pH + 2,
+                );
+                ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                ctx.textAlign = 'center';
+                ctx.fillText('Frequency (Hz)', W / 2, H);
+
+                const isLive = S.playing && playFrac > 0;
+                document.getElementById('mainCaption').textContent = isLive
+                    ? `FFT at playhead (n_fft=${S.nfft}) · window: ${S.windowType} · Δf = ${(S.sampleRate / n).toFixed(1)} Hz`
+                    : `FFT: ${mag.length.toLocaleString()} bins · Δf = ${(S.sampleRate / n).toFixed(4)} Hz · window: ${S.windowType}`;
+            }
+
+            // Cache STFT imagedata for performance
+            let stftImageCache = null;
+            let stftCacheKey = '';
+
+            function drawSTFTStatic(playFrac) {
+                document.getElementById('analysisOffLabel').style.display =
+                    'none';
+                const { ctx, W, H } = getCanvasCtx('mainCanvas', 300);
+                ctx.fillStyle = '#0a0a0f';
+                ctx.fillRect(0, 0, W, H);
+
+                if (!S.signal) return;
+
+                const hop = Math.max(
+                    1,
+                    Math.floor(S.nfft * (1 - S.overlapPct / 100)),
+                );
+                const cacheKey = `${S.signal.length}_${S.nfft}_${hop}_${S.windowType}_${S.maxFreq}_${W}_${H}`;
+
+                const pad = { l: 46, r: 10, t: 10, b: 30 };
+                const pW = W - pad.l - pad.r,
+                    pH = H - pad.t - pad.b;
+                const dpr = window.devicePixelRatio || 1;
+
+                // Recompute STFT only when params change
+                if (stftCacheKey !== cacheKey) {
+                    const { spec, numBins, numFrames, fftSize } = computeSTFT(
+                        S.signal,
+                        S.nfft,
+                        hop,
+                        S.windowType,
+                        S.sampleRate,
+                    );
+                    S.stftData = { spec, numBins, numFrames, fftSize, hop };
+
+                    const nyq = S.sampleRate / 2;
+                    const displayMax = Math.min(S.maxFreq, nyq);
+                    const maxBinIdx = Math.floor(
+                        (displayMax / nyq) * (numBins - 1),
+                    );
+
+                    let gMax = -Infinity;
+                    const dbSpec = spec.map(fr =>
+                        fr.map(v => {
+                            const db = 20 * Math.log10(v + 1e-10);
+                            if (db > gMax) gMax = db;
+                            return db;
+                        }),
+                    );
+                    const gMin = gMax - 60;
+
+                    const imgW = Math.ceil(pW * dpr),
+                        imgH = Math.ceil(pH * dpr);
+                    const imgData = ctx.createImageData(imgW, imgH);
+                    for (let px = 0; px < imgW; px++) {
+                        const fi = Math.min(
+                            Math.floor((px / imgW) * numFrames),
+                            numFrames - 1,
+                        );
+                        const frame = dbSpec[fi];
+                        for (let py = 0; py < imgH; py++) {
+                            const bi = Math.min(
+                                Math.floor(((imgH - py) / imgH) * maxBinIdx),
+                                numBins - 1,
+                            );
+                            const val = (frame[bi] - gMin) / 60;
+                            const [r, g, b] = magma(val);
+                            const idx = (py * imgW + px) * 4;
+                            imgData.data[idx] = r;
+                            imgData.data[idx + 1] = g;
+                            imgData.data[idx + 2] = b;
+                            imgData.data[idx + 3] = 255;
+                        }
+                    }
+                    stftImageCache = imgData;
+                    stftCacheKey = cacheKey;
+                }
+
+                if (stftImageCache)
+                    ctx.putImageData(stftImageCache, pad.l * dpr, pad.t * dpr);
+
+                // Playhead line on spectrogram
+                if (playFrac !== undefined && playFrac >= 0) {
+                    const x = pad.l + playFrac * pW;
+                    ctx.strokeStyle = S.playing
+                        ? '#34d399'
+                        : 'rgba(167,139,250,0.6)';
+                    ctx.lineWidth = S.playing ? 2 : 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(x, pad.t);
+                    ctx.lineTo(x, pad.t + pH);
+                    ctx.stroke();
+                }
+
+                // Axis labels
+                const nyq = S.sampleRate / 2;
+                const displayMax = Math.min(S.maxFreq, nyq);
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.font = '10px "DM Mono", monospace';
+                ctx.textAlign = 'right';
+                const freqStep = displayMax > 4000 ? 2000 : 1000;
+                for (let f = 0; f <= displayMax; f += freqStep) {
+                    const y = pad.t + pH - (f / displayMax) * pH;
+                    ctx.fillText(f + '', pad.l - 4, y + 3);
+                }
+                ctx.textAlign = 'center';
+                const dur = S.signal.length / S.sampleRate;
+                const tStep = dur > 3 ? 1 : dur > 1 ? 0.5 : 0.2;
+                for (let s = 0; s <= dur; s += tStep) {
+                    const x = pad.l + (s / dur) * pW;
+                    ctx.fillText(s.toFixed(1) + 's', x, H - 6);
+                }
+
+                const freqRes = S.sampleRate / S.nfft;
+                const timeRes = hop / S.sampleRate;
+                const nf = S.stftData ? S.stftData.numFrames : '?';
+                const nb = S.stftData ? S.stftData.numBins : '?';
+                document.getElementById('mainCaption').textContent =
+                    `STFT: ${nb}×${nf} · Δf=${freqRes.toFixed(1)} Hz · Δt=${(timeRes * 1000).toFixed(1)} ms · n_fft=${S.nfft} · hop=${hop}`;
+            }
+
+            function drawLiveSpectrum(currentTime) {
+                if (!S.signal || !S.analysisOn) return;
+                const { ctx, W, H } = getCanvasCtx('liveSpecCanvas', 180);
+                ctx.fillStyle = '#0a0a0f';
+                ctx.fillRect(0, 0, W, H);
+
+                const center = Math.floor(
+                    (currentTime / S.duration) * S.signal.length,
+                );
+                const start = Math.max(0, center - Math.floor(S.nfft / 2));
+                const { mag, n } = computeFFTSlice(
+                    S.signal,
+                    start,
+                    S.nfft,
+                    S.windowType,
+                );
+
+                const displayMax = Math.min(S.maxFreq, S.sampleRate / 2);
+                let maxDb = -Infinity;
+                const magDb = [];
+                for (let i = 0; i < mag.length; i++) {
+                    const db = 20 * Math.log10(mag[i] + 1e-10);
+                    if (db > maxDb) maxDb = db;
+                    magDb.push(db);
+                }
+                const minDb = maxDb - 70;
+
+                const pad = { l: 48, r: 12, t: 10, b: 28 };
+                const pW = W - pad.l - pad.r,
+                    pH = H - pad.t - pad.b;
+
+                // Filled bars style for live view
+                const numDisplayBins = Math.floor(
+                    (displayMax / (S.sampleRate / 2)) * mag.length,
+                );
+                const barW = Math.max(1, pW / numDisplayBins);
+
+                for (let i = 0; i < numDisplayBins && i < mag.length; i++) {
+                    const norm = Math.max(
+                        0,
+                        (magDb[i] - minDb) / (maxDb - minDb),
+                    );
+                    const x = pad.l + (i / numDisplayBins) * pW;
+                    const barH = norm * pH;
+                    const freq = (i * S.sampleRate) / n;
+
+                    // Color gradient based on height
+                    const hue = 260 - norm * 80; // purple to green
+                    ctx.fillStyle = `hsla(${hue}, 70%, ${50 + norm * 20}%, ${0.5 + norm * 0.5})`;
+                    ctx.fillRect(
+                        x,
+                        pad.t + pH - barH,
+                        Math.max(barW - 0.5, 0.5),
+                        barH,
+                    );
+                }
+
+                // Axis
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.font = '10px "DM Mono", monospace';
+                ctx.textAlign = 'center';
+                for (
+                    let f = 0;
+                    f <= displayMax;
+                    f += displayMax > 4000 ? 2000 : 1000
+                )
+                    ctx.fillText(f + '', pad.l + (f / displayMax) * pW, H - 4);
+                ctx.textAlign = 'right';
+                ctx.fillText(maxDb.toFixed(0) + ' dB', pad.l - 4, pad.t + 10);
+
+                const freqRes = S.sampleRate / n;
+                document.getElementById('liveSpecCaption').textContent =
+                    `Live FFT at ${currentTime.toFixed(3)}s · n_fft=${S.nfft} · window=${S.windowType} · Δf=${freqRes.toFixed(1)} Hz`;
+            }
+
+            function drawAnalysisOff() {
+                const { ctx, W, H } = getCanvasCtx(
+                    'mainCanvas',
+                    S.tab === 'stft' ? 300 : 280,
+                );
+                ctx.fillStyle = '#0a0a0f';
+                ctx.fillRect(0, 0, W, H);
+
+                // Dim waveform in the main canvas as ambient visual
+                if (S.signal) {
+                    ctx.strokeStyle = 'rgba(96,165,250,0.08)';
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    const step = Math.max(1, Math.floor(S.signal.length / W));
+                    for (let px = 0; px < W; px++) {
+                        const idx = Math.floor((px / W) * S.signal.length);
+                        const y =
+                            H / 2 -
+                            S.signal[Math.min(idx, S.signal.length - 1)] *
+                                H *
+                                0.4;
+                        if (px === 0) ctx.moveTo(px, y);
+                        else ctx.lineTo(px, y);
+                    }
+                    ctx.stroke();
+                }
+
+                document.getElementById('analysisOffLabel').style.display = '';
+                document.getElementById('mainCaption').textContent =
+                    'Analysis disabled — toggle on to see FFT / STFT visualization';
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // PARAMS & INSIGHT
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            function updateParams() {
+                const grid = document.getElementById('paramGrid');
+                const fs = S.sampleRate,
+                    nyq = fs / 2,
+                    sig = S.signal;
+                if (!sig) {
+                    grid.innerHTML = '';
+                    return;
+                }
+                const hop = Math.max(
+                    1,
+                    Math.floor(S.nfft * (1 - S.overlapPct / 100)),
+                );
+
+                if (S.tab === 'fft') {
+                    let n = 1;
+                    while (n < sig.length) n <<= 1;
+                    grid.innerHTML =
+                        pc(
+                            'Sample Rate (fs)',
+                            fs.toLocaleString(),
+                            'Hz',
+                            'From .wav header',
+                        ) +
+                        pc(
+                            'Nyquist (fs/2)',
+                            nyq.toLocaleString(),
+                            'Hz',
+                            'Max detectable freq',
+                        ) +
+                        pc(
+                            'N (samples)',
+                            sig.length.toLocaleString(),
+                            '',
+                            'Input signal length',
+                        ) +
+                        pc(
+                            'Δf = fs/N',
+                            (fs / n).toFixed(4),
+                            'Hz',
+                            'Frequency resolution',
+                        ) +
+                        pc(
+                            'Freq Bins',
+                            (n / 2 + 1).toLocaleString(),
+                            '',
+                            '= N/2 + 1',
+                        ) +
+                        pc(
+                            'Window',
+                            S.windowType,
+                            '',
+                            'Reduces spectral leakage',
+                        );
+                } else {
+                    let fftSize = 1;
+                    while (fftSize < S.nfft) fftSize <<= 1;
+                    const numBins = fftSize / 2 + 1;
+                    const numFrames = Math.max(
+                        1,
+                        Math.floor((sig.length - S.nfft) / hop) + 1,
+                    );
+                    const freqRes = fs / S.nfft;
+                    const timeRes = hop / fs;
+                    const winMs = ((S.nfft / fs) * 1000).toFixed(1);
+                    grid.innerHTML =
+                        pc(
+                            'Sample Rate (fs)',
+                            fs.toLocaleString(),
+                            'Hz',
+                            'From .wav header',
+                        ) +
+                        pc(
+                            'Nyquist',
+                            nyq.toLocaleString(),
+                            'Hz',
+                            'Max detectable freq',
+                        ) +
+                        pc('n_fft', S.nfft, 'samples', winMs + ' ms window') +
+                        pc(
+                            'Hop Length',
+                            hop,
+                            'samples',
+                            'n_fft × ' + (1 - S.overlapPct / 100).toFixed(2),
+                        ) +
+                        pc(
+                            'Overlap',
+                            S.overlapPct + '%',
+                            '',
+                            S.nfft - hop + ' shared samples',
+                        ) +
+                        pc(
+                            'Δf = fs/n_fft',
+                            freqRes.toFixed(1),
+                            'Hz',
+                            'Freq resolution',
+                        ) +
+                        pc(
+                            'Δt = hop/fs',
+                            (timeRes * 1000).toFixed(1),
+                            'ms',
+                            'Time resolution',
+                        ) +
+                        pc('Freq Bins', numBins, 'rows', '= n_fft/2 + 1') +
+                        pc(
+                            'Time Frames',
+                            numFrames,
+                            'cols',
+                            '≈ (N−n_fft)/hop + 1',
+                        ) +
+                        pc(
+                            'Shape',
+                            numBins + ' × ' + numFrames,
+                            '',
+                            'Spectrogram matrix',
+                        );
+                }
+            }
+
+            function pc(label, value, unit, detail) {
+                return `<div class="param-card"><div class="label">${label}</div><div class="value">${value}<span class="unit">${unit}</span></div><div class="detail">${detail}</div></div>`;
+            }
+
+            function updateInsight() {
+                const box = document.getElementById('insightBox');
+                if (!S.analysisOn) {
+                    box.innerHTML = `<h3>Analysis Off</h3><p>The audio plays as-is — raw waveform, no frequency decomposition. Toggle analysis back on to see how the Fourier transform reveals the frequency content hidden inside the time-domain signal. This is the core idea: the same audio data, two completely different perspectives.</p>`;
+                } else if (S.tab === 'fft') {
+                    box.innerHTML = `<h3>FFT${S.playing ? ' — Live at Playhead' : ''}</h3>
+      <p>${
+          S.playing
+              ? 'The FFT updates in real time, computing a <code>' +
+                S.nfft +
+                '</code>-sample window centered on the playhead. Watch how the spectrum shifts as different parts of the audio play. The <strong>live spectrum</strong> below shows the same data as an animated bar graph.'
+              : 'The FFT decomposes the <em>entire</em> signal into frequency components. Press <strong>Play</strong> to see it animate in real time at the playhead position. Try different <strong>window functions</strong> — Hann vs Rectangular shows the leakage tradeoff clearly.'
+      }</p>`;
+                } else {
+                    box.innerHTML = `<h3>STFT${S.playing ? ' — Live Playback' : ''}</h3>
+      <p>${
+          S.playing
+              ? 'The green playhead sweeps across the spectrogram. The highlighted region on the waveform above shows the exact <code>n_fft=' +
+                S.nfft +
+                '</code> samples being analyzed at that instant. The live spectrum below shows the FFT of that window.'
+              : 'Try switching between <code>n_fft = 256</code> and <code>n_fft = 4096</code>. At 256 transients are sharp but frequencies blur. At 4096 frequencies are razor-sharp but timing smears. Press <strong>Play</strong> to watch the playhead sweep through the spectrogram in real time.'
+      }</p>`;
+                }
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // TOGGLE ANALYSIS
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            function toggleAnalysis() {
+                S.analysisOn = !S.analysisOn;
+                document
+                    .getElementById('analysisToggle')
+                    .classList.toggle('on', S.analysisOn);
+                document.getElementById('liveSpecSection').style.display =
+                    S.playing && S.analysisOn ? '' : 'none';
+                if (!S.playing) renderStaticAll();
+                else renderFrame();
+                updateInsight();
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // LOADING
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            function loadPreset(preset) {
+                stopPlayback();
+                S.preset = preset;
+                const fs = 44100,
+                    dur = 2.0;
+                S.sampleRate = fs;
+                switch (preset) {
+                    case 'tones':
+                        S.signal = genTones(fs, dur);
+                        S.sourceLabel = 'Synthetic: 440+1000+2500 Hz';
+                        break;
+                    case 'chirp':
+                        S.signal = genChirp(fs, dur);
+                        S.sourceLabel = 'Synthetic: Chirp 100→4000 Hz';
+                        break;
+                    case 'impulses':
+                        S.signal = genImpulses(fs, dur);
+                        S.sourceLabel = 'Synthetic: Impulses';
+                        break;
+                    case 'chord':
+                        S.signal = genChord(fs, dur);
+                        S.sourceLabel = 'Synthetic: C Major Chord';
+                        break;
+                }
+                S.duration = dur;
+                S.playOffset = 0;
+                S.audioBuffer = null;
+                stftCacheKey = '';
+                document
+                    .querySelectorAll('#presetBtns .btn')
+                    .forEach(b =>
+                        b.classList.toggle(
+                            'active',
+                            b.dataset.preset === preset,
+                        ),
+                    );
+                document.getElementById('uploadZone').style.display = '';
+                document.getElementById('fileInfo').style.display = 'none';
+                document.getElementById('maxFreqSlider').max = fs / 2;
+                renderStaticAll();
+            }
+
+            function loadWavFile(file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        stopPlayback();
+                        const ctx = ensureAudioCtx();
+                        ctx.decodeAudioData(
+                            e.target.result,
+                            function (decodedBuffer) {
+                                const raw = decodedBuffer.getChannelData(0); // mono from first channel
+                                // Mix to mono if stereo
+                                let mono;
+                                if (decodedBuffer.numberOfChannels > 1) {
+                                    mono = new Float64Array(
+                                        decodedBuffer.length,
+                                    );
+                                    for (
+                                        let ch = 0;
+                                        ch < decodedBuffer.numberOfChannels;
+                                        ch++
+                                    ) {
+                                        const chData =
+                                            decodedBuffer.getChannelData(ch);
+                                        for (let i = 0; i < mono.length; i++)
+                                            mono[i] += chData[i];
+                                    }
+                                    for (let i = 0; i < mono.length; i++)
+                                        mono[i] /=
+                                            decodedBuffer.numberOfChannels;
+                                } else {
+                                    mono = new Float64Array(raw.length);
+                                    for (let i = 0; i < raw.length; i++)
+                                        mono[i] = raw[i];
+                                }
+
+                                const maxSamples =
+                                    decodedBuffer.sampleRate * 30;
+                                S.signal =
+                                    mono.length > maxSamples
+                                        ? mono.slice(0, maxSamples)
+                                        : mono;
+                                S.sampleRate = decodedBuffer.sampleRate;
+                                S.sourceLabel = file.name;
+                                S.duration = S.signal.length / S.sampleRate;
+                                S.playOffset = 0;
+                                S.audioBuffer = null;
+                                stftCacheKey = '';
+
+                                document.getElementById(
+                                    'uploadZone',
+                                ).style.display = 'none';
+                                document.getElementById(
+                                    'fileInfo',
+                                ).style.display = 'flex';
+                                document.getElementById(
+                                    'fileName',
+                                ).textContent = file.name;
+                                document.getElementById(
+                                    'fileMeta',
+                                ).textContent =
+                                    `${decodedBuffer.sampleRate} Hz · ${decodedBuffer.numberOfChannels}ch · ${(decodedBuffer.length / decodedBuffer.sampleRate).toFixed(2)}s`;
+                                document
+                                    .querySelectorAll('#presetBtns .btn')
+                                    .forEach(b => b.classList.remove('active'));
+
+                                const nyq = decodedBuffer.sampleRate / 2;
+                                document.getElementById('maxFreqSlider').max =
+                                    nyq;
+                                if (S.maxFreq > nyq) {
+                                    S.maxFreq = Math.min(8000, nyq);
+                                    document.getElementById(
+                                        'maxFreqSlider',
+                                    ).value = S.maxFreq;
+                                    document.getElementById(
+                                        'maxFreqVal',
+                                    ).textContent = S.maxFreq + ' Hz';
+                                }
+
+                                renderStaticAll();
+                            },
+                            function (err) {
+                                alert('Could not decode audio: ' + err.message);
+                            },
+                        );
+                    } catch (err) {
+                        alert('Error reading file: ' + err.message);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+
+            function resetToSynthetic() {
+                loadPreset(S.preset || 'tones');
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // EVENTS
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            function setupEvents() {
+                document
+                    .getElementById('fileInput')
+                    .addEventListener('change', e => {
+                        if (e.target.files[0]) loadWavFile(e.target.files[0]);
+                    });
+
+                const zone = document.getElementById('uploadZone');
+                zone.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    zone.classList.add('dragover');
+                });
+                zone.addEventListener('dragleave', () =>
+                    zone.classList.remove('dragover'),
+                );
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    zone.classList.remove('dragover');
+                    if (e.dataTransfer.files[0])
+                        loadWavFile(e.dataTransfer.files[0]);
+                });
+                document.body.addEventListener('dragover', e =>
+                    e.preventDefault(),
+                );
+                document.body.addEventListener('drop', e => {
+                    e.preventDefault();
+                    const f = e.dataTransfer.files[0];
+                    if (f) loadWavFile(f);
+                });
+
+                document
+                    .querySelectorAll('#presetBtns .btn')
+                    .forEach(b =>
+                        b.addEventListener('click', () =>
+                            loadPreset(b.dataset.preset),
+                        ),
+                    );
+
+                document.querySelectorAll('.tab').forEach(tab =>
+                    tab.addEventListener('click', () => {
+                        S.tab = tab.dataset.tab;
+                        document
+                            .querySelectorAll('.tab')
+                            .forEach(t =>
+                                t.classList.toggle('active', t === tab),
+                            );
+                        document.getElementById('stftControls').style.display =
+                            S.tab === 'stft' ? '' : 'none';
+                        stftCacheKey = '';
+                        if (!S.playing) renderStaticAll();
+                        else renderFrame();
+                        updateParams();
+                        updateInsight();
+                    }),
+                );
+
+                document.querySelectorAll('#windowBtns .btn').forEach(b =>
+                    b.addEventListener('click', () => {
+                        S.windowType = b.dataset.win;
+                        document
+                            .querySelectorAll('#windowBtns .btn')
+                            .forEach(x =>
+                                x.classList.toggle('active', x === b),
+                            );
+                        stftCacheKey = '';
+                        if (!S.playing) renderStaticAll();
+                    }),
+                );
+
+                document.querySelectorAll('#nfftBtns .btn').forEach(b =>
+                    b.addEventListener('click', () => {
+                        S.nfft = parseInt(b.dataset.nfft);
+                        document
+                            .querySelectorAll('#nfftBtns .btn')
+                            .forEach(x =>
+                                x.classList.toggle('active', x === b),
+                            );
+                        stftCacheKey = '';
+                        if (!S.playing) renderStaticAll();
+                        updateParams();
+                    }),
+                );
+
+                document
+                    .getElementById('maxFreqSlider')
+                    .addEventListener('input', e => {
+                        S.maxFreq = parseInt(e.target.value);
+                        document.getElementById('maxFreqVal').textContent =
+                            S.maxFreq + ' Hz';
+                        stftCacheKey = '';
+                        if (!S.playing) renderStaticAll();
+                    });
+
+                document
+                    .getElementById('overlapSlider')
+                    .addEventListener('input', e => {
+                        S.overlapPct = parseInt(e.target.value);
+                        document.getElementById('overlapVal').textContent =
+                            S.overlapPct + '%';
+                        stftCacheKey = '';
+                        if (!S.playing) renderStaticAll();
+                        updateParams();
+                    });
+
+                // Seek bar
+                const seekBar = document.getElementById('seekBar');
+                let seeking = false;
+                seekBar.addEventListener('mousedown', () => {
+                    seeking = true;
+                });
+                seekBar.addEventListener('input', () => {
+                    if (seeking) seekTo(parseInt(seekBar.value) / 1000);
+                });
+                seekBar.addEventListener('mouseup', () => {
+                    seeking = false;
+                });
+                seekBar.addEventListener('change', () => {
+                    seekTo(parseInt(seekBar.value) / 1000);
+                    seeking = false;
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', e => {
+                    if (e.target.tagName === 'INPUT') return;
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        togglePlay();
+                    }
+                    if (e.code === 'Escape') stopPlayback();
+                    if (e.code === 'KeyA') toggleAnalysis();
+                });
+
+                window.addEventListener('resize', () => {
+                    stftCacheKey = '';
+                    if (!S.playing) renderStaticAll();
+                });
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // BOOT
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            loadPreset('tones');
+            setupEvents();
+        </script>
+    </body>
+</html>
