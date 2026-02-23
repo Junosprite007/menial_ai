@@ -1,10 +1,10 @@
-<!-- This file was written by Cluade 4.6 LLM via the prompt of Josh Kirby -->
+≠=<!-- This file was written by Cluade 4.6 LLM via the prompt of Josh Kirby -->
 <!doctype html>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Fourier Explorer v5 — TECHIN 513A</title>
+        <title>Fourier Explorer v6 — TECHIN 513A</title>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&display=swap');
             :root {
@@ -651,14 +651,172 @@
                 font-style: italic;
                 color: rgba(255, 255, 255, 0.5);
             }
+            /* v6: mode panels */
+            .mode-panel {
+                margin-top: 10px;
+            }
+            .mode-panel[style*='display: none'],
+            .mode-panel.hidden {
+                display: none;
+            }
+            .band-row {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 10px;
+                background: var(--s);
+                border: 1px solid var(--bd);
+                border-radius: 7px;
+                margin-bottom: 6px;
+                flex-wrap: wrap;
+            }
+            .band-row .band-color {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+            .band-row .band-ctrls {
+                flex: 1;
+                min-width: 200px;
+            }
+            .band-row .band-rm {
+                background: none;
+                border: 1px solid rgba(251, 113, 133, 0.3);
+                color: var(--rs);
+                border-radius: 4px;
+                padding: 2px 7px;
+                cursor: pointer;
+                font-family: var(--mo);
+                font-size: 9px;
+            }
+            .band-row .band-rm:hover {
+                background: var(--rsd);
+            }
+            .noise-region {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                background: rgba(251, 191, 36, 0.06);
+                border: 1px solid rgba(251, 191, 36, 0.15);
+                border-radius: 7px;
+                margin-bottom: 8px;
+                font-family: var(--mo);
+                font-size: 10px;
+                color: var(--am);
+            }
+            .inline-edit {
+                width: 55px;
+                background: transparent;
+                border: 1px solid var(--cy);
+                border-radius: 3px;
+                color: var(--ac);
+                font-family: var(--mo);
+                font-size: 10px;
+                text-align: right;
+                padding: 1px 3px;
+                outline: none;
+            }
+            .edu-toggle {
+                cursor: pointer;
+                user-select: none;
+                font-family: var(--mo);
+                font-size: 9px;
+                padding: 4px 0;
+                margin-bottom: 6px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .edu-body {
+                max-height: 300px;
+                opacity: 1;
+                padding: 8px 12px;
+                transition:
+                    max-height 0.3s,
+                    opacity 0.2s,
+                    padding 0.3s;
+                overflow: hidden;
+                background: rgba(251, 191, 36, 0.03);
+                border: 1px solid rgba(251, 191, 36, 0.1);
+                border-radius: 6px;
+                margin-bottom: 8px;
+            }
+            .edu-body.edu-hidden {
+                max-height: 0;
+                opacity: 0;
+                padding: 0 12px;
+                border-color: transparent;
+            }
+            .edu-body h3 {
+                font-family: var(--sn);
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--am);
+                margin-bottom: 4px;
+            }
+            .edu-body p {
+                font-family: var(--se);
+                font-size: 11px;
+                color: rgba(255, 255, 255, 0.55);
+                margin-bottom: 5px;
+                line-height: 1.6;
+            }
+            .edu-body .fm {
+                font-family: var(--mo);
+                font-size: 10px;
+                color: var(--gn);
+                background: rgba(52, 211, 153, 0.06);
+                border: 1px solid rgba(52, 211, 153, 0.12);
+                border-radius: 4px;
+                padding: 4px 8px;
+                margin: 4px 0;
+                display: inline-block;
+            }
+            .edu-body .kp {
+                border-left: 3px solid var(--am);
+                padding-left: 8px;
+                margin: 5px 0;
+                font-family: var(--se);
+                font-style: italic;
+                color: rgba(255, 255, 255, 0.45);
+                font-size: 11px;
+            }
+            #wCW {
+                position: relative;
+                cursor: text;
+            }
+            #wCW canvas {
+                display: block;
+                width: 100%;
+            }
+            #mCW {
+                position: relative;
+            }
+            #mCov {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+            #mCW.crosshair canvas {
+                cursor: crosshair;
+            }
+            #mCov.active {
+                pointer-events: auto;
+                cursor: crosshair;
+            }
         </style>
     </head>
     <body>
         <div class="ctn">
             <h1>Fourier Explorer</h1>
             <p class="sub">
-                Analyze · Extract · Listen — hear what individual frequencies
-                sound like
+                Analyze · Extract · Isolate · Listen — advanced audio feature
+                isolation
             </p>
 
             <!-- Upload -->
@@ -739,7 +897,7 @@
                             class="tb"
                             id="extPlayB"
                             onclick="togExtPlay()"
-                            title="Toggle: Original vs Extracted"
+                            title="Toggle: Original vs Extracted (bypass)"
                             style="
                                 width: auto;
                                 border-radius: 5px;
@@ -750,6 +908,25 @@
                         >
                             ORIGINAL
                         </button>
+                    </div>
+                    <div
+                        class="at"
+                        data-l="wetDryCtrl"
+                        onclick="L('wetDryCtrl')"
+                    >
+                        <span>Mix</span>
+                        <input
+                            type="range"
+                            class="ts"
+                            id="wetDry"
+                            min="0"
+                            max="100"
+                            value="100"
+                            style="width: 60px"
+                        />
+                        <span class="srv" id="wetDryV" style="min-width: 30px"
+                            >100%</span
+                        >
                     </div>
                     <div class="at" data-l="extToggle" onclick="L('extToggle')">
                         <span>Overlay</span>
@@ -773,56 +950,365 @@
                 </div>
             </div>
 
-            <!-- Band selector -->
+            <!-- Isolation Mode Selector -->
             <div class="sec" id="bandSec">
-                <div class="sl" data-l="bandSel" onclick="L('bandSel')">
-                    Frequency Band Extraction
+                <div class="sl" data-l="isoMode" onclick="L('isoMode')">
+                    Isolation Mode
                     <span style="color: var(--cy); font-weight: 400"
                         >· cyan = extracted</span
                     >
                 </div>
-                <div class="cg">
-                    <div>
-                        <div class="sr">
-                            <span class="srl">Low cutoff</span
-                            ><input
-                                type="range"
-                                id="bandLo"
-                                min="0"
-                                max="22050"
-                                step="10"
-                                value="0"
-                            /><span class="srv" id="bandLoV">0 Hz</span>
+                <div class="bg" id="modeBtns" style="margin-bottom: 10px">
+                    <button class="bt ac" data-m="single">Single Band</button>
+                    <button class="bt" data-m="multi">Multi-Band</button>
+                    <button class="bt" data-m="spectral">Spectral Sub</button>
+                    <button class="bt" data-m="combined">Combined</button>
+                </div>
+
+                <!-- Panel: Single Band -->
+                <div id="panSingle" class="mode-panel">
+                    <div
+                        class="edu-toggle"
+                        onclick="
+                            this.nextElementSibling.classList.toggle(
+                                'edu-hidden',
+                            )
+                        "
+                    >
+                        <span style="color: var(--am)"
+                            >? Learn about Single-Band Extraction</span
+                        >
+                        <span class="lhc">&#9660;</span>
+                    </div>
+                    <div class="edu-body edu-hidden" id="eduSingle"></div>
+                    <div class="cg">
+                        <div>
+                            <div class="sr">
+                                <span class="srl">Low cutoff</span
+                                ><input
+                                    type="range"
+                                    id="bandLo"
+                                    min="0"
+                                    max="22050"
+                                    step="10"
+                                    value="0"
+                                /><span class="srv" id="bandLoV">0 Hz</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="sr">
+                                <span class="srl">High cutoff</span
+                                ><input
+                                    type="range"
+                                    id="bandHi"
+                                    min="0"
+                                    max="22050"
+                                    step="10"
+                                    value="22050"
+                                /><span class="srv" id="bandHiV">22050 Hz</span>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <div class="sr">
-                            <span class="srl">High cutoff</span
-                            ><input
-                                type="range"
-                                id="bandHi"
-                                min="0"
-                                max="22050"
-                                step="10"
-                                value="22050"
-                            /><span class="srv" id="bandHiV">22050 Hz</span>
-                        </div>
+                    <div
+                        class="sr"
+                        data-l="rolloffCtrl"
+                        onclick="L('rolloffCtrl')"
+                    >
+                        <span class="srl">Rolloff (order)</span>
+                        <input
+                            type="range"
+                            id="rolloffS"
+                            min="1"
+                            max="12"
+                            step="1"
+                            value="4"
+                        />
+                        <span class="srv" id="rolloffV">4</span>
                     </div>
+                </div>
+
+                <!-- Panel: Multi-Band -->
+                <div id="panMulti" class="mode-panel" style="display: none">
+                    <div
+                        class="edu-toggle"
+                        onclick="
+                            this.nextElementSibling.classList.toggle(
+                                'edu-hidden',
+                            )
+                        "
+                    >
+                        <span style="color: var(--am)"
+                            >? Learn about Multi-Band Filtering</span
+                        >
+                        <span class="lhc">&#9660;</span>
+                    </div>
+                    <div class="edu-body edu-hidden" id="eduMulti"></div>
+                    <div
+                        id="bandList"
+                        data-l="multiBandCtrl"
+                        onclick="L('multiBandCtrl')"
+                    ></div>
+                    <button
+                        class="bt"
+                        onclick="
+                            addBand();
+                            L('multiBandCtrl');
+                        "
+                        style="margin-top: 4px"
+                    >
+                        + Add Band
+                    </button>
+                </div>
+
+                <!-- Panel: Spectral Subtraction -->
+                <div id="panSpectral" class="mode-panel" style="display: none">
+                    <div
+                        class="edu-toggle"
+                        onclick="
+                            this.nextElementSibling.classList.toggle(
+                                'edu-hidden',
+                            )
+                        "
+                    >
+                        <span style="color: var(--am)"
+                            >? Learn about Spectral Subtraction</span
+                        >
+                        <span class="lhc">&#9660;</span>
+                    </div>
+                    <div class="edu-body edu-hidden" id="eduSpectral"></div>
+                    <div
+                        class="sr"
+                        data-l="noiseRegion"
+                        onclick="L('noiseRegion')"
+                    >
+                        <span class="srl">Noise start</span>
+                        <input
+                            type="range"
+                            id="noiseStartS"
+                            min="0"
+                            max="1000"
+                            value="0"
+                        />
+                        <span class="srv" id="noiseStartV">0.00s</span>
+                    </div>
+                    <div
+                        class="sr"
+                        data-l="noiseRegion"
+                        onclick="L('noiseRegion')"
+                    >
+                        <span class="srl">Noise end</span>
+                        <input
+                            type="range"
+                            id="noiseEndS"
+                            min="0"
+                            max="1000"
+                            value="100"
+                        />
+                        <span class="srv" id="noiseEndV">0.20s</span>
+                    </div>
+                    <button
+                        class="bt"
+                        id="captureNoiseB"
+                        onclick="
+                            captureNoise();
+                            L('noiseRegion');
+                        "
+                        style="margin-bottom: 8px"
+                    >
+                        Capture Noise Profile
+                    </button>
+                    <span
+                        class="srv"
+                        id="noiseStatus"
+                        style="color: var(--td); margin-left: 8px"
+                        >No profile</span
+                    >
+                    <div
+                        class="sr"
+                        data-l="overSubCtrl"
+                        onclick="L('overSubCtrl')"
+                        style="margin-top: 8px"
+                    >
+                        <span class="srl">Over-sub (&#945;)</span>
+                        <input
+                            type="range"
+                            id="overSubS"
+                            min="50"
+                            max="400"
+                            step="10"
+                            value="100"
+                        />
+                        <span class="srv" id="overSubV">1.0</span>
+                    </div>
+                    <div
+                        class="sr"
+                        data-l="specFloorCtrl"
+                        onclick="L('specFloorCtrl')"
+                    >
+                        <span class="srl">Spec floor (&#946;)</span>
+                        <input
+                            type="range"
+                            id="specFloorS"
+                            min="1"
+                            max="100"
+                            step="1"
+                            value="10"
+                        />
+                        <span class="srv" id="specFloorV">0.010</span>
+                    </div>
+                </div>
+
+                <!-- Panel: Combined -->
+                <div id="panCombined" class="mode-panel" style="display: none">
+                    <div
+                        class="edu-toggle"
+                        onclick="
+                            this.nextElementSibling.classList.toggle(
+                                'edu-hidden',
+                            )
+                        "
+                    >
+                        <span style="color: var(--am)"
+                            >? Learn about Combined Processing</span
+                        >
+                        <span class="lhc">&#9660;</span>
+                    </div>
+                    <div class="edu-body edu-hidden" id="eduCombined"></div>
+                    <div
+                        class="sl"
+                        data-l="combOrderCtrl"
+                        onclick="L('combOrderCtrl')"
+                        style="margin-top: 6px"
+                    >
+                        Processing Order
+                    </div>
+                    <div class="bg" id="orderBtns" style="margin-bottom: 10px">
+                        <button class="bt ac" data-o="spectral-first">
+                            Spectral Sub &#8594; Band Filter
+                        </button>
+                        <button class="bt" data-o="band-first">
+                            Band Filter &#8594; Spectral Sub
+                        </button>
+                    </div>
+                    <div
+                        class="sl"
+                        data-l="noiseRegion"
+                        onclick="L('noiseRegion')"
+                    >
+                        Noise Reduction
+                    </div>
+                    <div
+                        class="sr"
+                        data-l="noiseRegion"
+                        onclick="L('noiseRegion')"
+                    >
+                        <span class="srl">Noise start</span>
+                        <input
+                            type="range"
+                            id="cNoiseStartS"
+                            min="0"
+                            max="1000"
+                            value="0"
+                        />
+                        <span class="srv" id="cNoiseStartV">0.00s</span>
+                    </div>
+                    <div
+                        class="sr"
+                        data-l="noiseRegion"
+                        onclick="L('noiseRegion')"
+                    >
+                        <span class="srl">Noise end</span>
+                        <input
+                            type="range"
+                            id="cNoiseEndS"
+                            min="0"
+                            max="1000"
+                            value="100"
+                        />
+                        <span class="srv" id="cNoiseEndV">0.20s</span>
+                    </div>
+                    <button
+                        class="bt"
+                        onclick="
+                            captureNoise();
+                            L('noiseRegion');
+                        "
+                        style="margin-bottom: 8px"
+                    >
+                        Capture Noise Profile
+                    </button>
+                    <span
+                        class="srv"
+                        id="cNoiseStatus"
+                        style="color: var(--td); margin-left: 8px"
+                        >No profile</span
+                    >
+                    <div
+                        class="sr"
+                        data-l="overSubCtrl"
+                        onclick="L('overSubCtrl')"
+                        style="margin-top: 8px"
+                    >
+                        <span class="srl">Over-sub (&#945;)</span>
+                        <input
+                            type="range"
+                            id="cOverSubS"
+                            min="50"
+                            max="400"
+                            step="10"
+                            value="100"
+                        />
+                        <span class="srv" id="cOverSubV">1.0</span>
+                    </div>
+                    <div
+                        class="sr"
+                        data-l="specFloorCtrl"
+                        onclick="L('specFloorCtrl')"
+                    >
+                        <span class="srl">Spec floor (&#946;)</span>
+                        <input
+                            type="range"
+                            id="cSpecFloorS"
+                            min="1"
+                            max="100"
+                            step="1"
+                            value="10"
+                        />
+                        <span class="srv" id="cSpecFloorV">0.010</span>
+                    </div>
+                    <div class="sl" style="margin-top: 10px">Band Filters</div>
+                    <div id="cBandList"></div>
+                    <button
+                        class="bt"
+                        onclick="addBand()"
+                        style="margin-top: 4px"
+                    >
+                        + Add Band
+                    </button>
                 </div>
             </div>
 
             <!-- Waveform -->
             <div class="sec">
-                <div class="sl" data-l="wf" onclick="L('wf')">
+                <div class="sl" data-l="selRegion" onclick="L('selRegion')">
                     Waveform
+                    <span
+                        style="
+                            font-weight: 400;
+                            color: var(--gn);
+                            font-size: 8px;
+                        "
+                        >· drag to select region</span
+                    >
                     <span class="lb" id="livB" style="display: none"
                         ><span class="ld"></span>LIVE</span
                     >
                 </div>
-                <div class="cw" data-l="wf" onclick="L('wf')">
+                <div class="cw" id="wCW" data-l="wf">
                     <canvas id="wC" height="110"></canvas>
                 </div>
                 <div class="cc" id="wCap"></div>
+                <div class="cc" id="selCap" style="color: var(--gn)"></div>
             </div>
 
             <!-- Tabs -->
@@ -975,6 +1461,7 @@
             <div class="sec">
                 <div class="cw" id="mCW">
                     <canvas id="mC" height="300"></canvas>
+                    <canvas id="mCov" height="300"></canvas>
                     <div class="aol" id="anOff" style="display: none">
                         Analysis OFF
                     </div>
@@ -1063,7 +1550,7 @@
             const LS = {
                 wf: {
                     t: 'Waveform',
-                    b: '<h3>Waveform</h3><p>Amplitude vs time. When the <span style="color:#22d3ee">cyan overlay</span> is on, the extracted frequency band is drawn on top of the original (blue) waveform. This lets you visually see which parts of the signal fall within your selected band.</p><div class="kp">The audio you hear during "ORIGINAL" mode is unchanged. In "EXTRACTED" mode, you hear only the cyan portion — everything outside your band has been removed via inverse FFT.</div>',
+                    b: '<h3>Waveform</h3><p>Amplitude vs time. When the <span style="color:#22d3ee">cyan overlay</span> is on, the extracted frequency band is drawn on top of the original (blue) waveform. This lets you visually see which parts of the signal fall within your selected band.</p><p><strong>Region selection:</strong> Drag horizontally to select a time region (green edges). Playback will loop within this region. Double-click to clear. Click to seek.</p><div class="kp">The audio you hear during "ORIGINAL" mode is unchanged. In "EXTRACTED" mode, you hear only the cyan portion — everything outside your band has been removed via inverse FFT.</div>',
                 },
                 fftT: {
                     t: 'FFT',
@@ -1095,104 +1582,150 @@
                 },
                 nf: {
                     t: 'n_fft',
-                    b: '<h3>n_fft</h3><p>Controls the time-frequency tradeoff. Larger = finer freq resolution, coarser time. The extraction band resolution also depends on this — more bins within your band = cleaner isolation.</p><div class="fm">Δf = fs / n_fft</div>',
+                    b: '<h3>n_fft (FFT Window Size)</h3><p>The fundamental time-frequency tradeoff parameter. Controls how many samples are analyzed in each STFT frame.</p><div class="fm">Δf = fs / n_fft &nbsp;&nbsp;|&nbsp;&nbsp; Δt = hop / fs</div><p><strong>256:</strong> ~5.8ms windows at 44.1kHz. Excellent time resolution, poor frequency resolution (172 Hz bins). Good for transient sounds like drum hits.</p><p><strong>1024:</strong> ~23ms windows. Balanced time/frequency tradeoff. Good default.</p><p><strong>4096:</strong> ~93ms windows. Excellent frequency resolution (10.8 Hz bins), but time events are smeared. Good for sustained tones, chords, machinery hum.</p><div class="kp">The Heisenberg-Gabor uncertainty principle: you cannot have both perfect time and frequency resolution simultaneously. Δf × Δt ≥ 1/(4π). This is a fundamental limit, not a software limitation.</div>',
                 },
                 ol: {
                     t: 'Overlap',
-                    b: '<h3>Overlap</h3><div class="fm">hop = n_fft × (1 - overlap%)</div><p>75% is standard for analysis. Higher overlap = smoother time axis.</p>',
+                    b: '<h3>Overlap Percentage</h3><p>How much consecutive STFT frames overlap in time.</p><div class="fm">hop = n_fft × (1 - overlap%)</div><p><strong>75% (default):</strong> hop = n_fft/4. Standard for Hann window — ensures perfect reconstruction and smooth time axis.</p><p><strong>50%:</strong> hop = n_fft/2. Fewer frames, coarser time resolution, but faster computation.</p><p><strong>90%:</strong> Very smooth spectrogram with many frames. Useful for detailed time analysis but computationally expensive.</p><div class="kp">With a Hann window, 75% overlap provides "constant overlap-add" (COLA) — meaning if you sum all the windowed frames, you recover the original signal perfectly. This is essential for proper STFT analysis.</div>',
                 },
                 wfn: {
                     t: 'Window Function',
-                    b: '<h3>Window Functions</h3><p>Tapers signal edges to prevent spectral leakage. The FFT assumes periodicity — the window smooths the boundary.</p>',
+                    b: '<h3>Window Functions</h3><p>Tapers signal edges to prevent <strong>spectral leakage</strong>. The FFT assumes the signal is periodic — without windowing, discontinuities at frame edges cause energy to "leak" into neighboring frequency bins.</p><div class="fm">windowed_signal[n] = signal[n] × window[n]</div><p>The window multiplies each sample, tapering smoothly to zero at the edges. This reduces leakage at the cost of slightly widening frequency peaks (the "main lobe").</p><div class="kp">The tradeoff: narrower main lobe = better frequency resolution but more leakage. Wider main lobe = less leakage but blurred frequency peaks. Hann is the best general-purpose choice.</div>',
                 },
                 wr: {
                     t: 'Rectangular',
-                    b: '<h3>Rectangular</h3><p>No taper. Sharpest peaks but worst leakage (-13 dB). Rarely used.</p>',
+                    b: '<h3>Rectangular Window</h3><p>No taper at all — every sample weighted equally. Equivalent to no windowing.</p><p><strong>Main lobe width:</strong> Narrowest (best resolution).</p><p><strong>Sidelobe level:</strong> -13 dB (worst leakage).</p><div class="kp">Only useful when the signal is guaranteed to be exactly periodic within the frame (rare in practice). For real-world audio, spectral leakage makes rectangular almost useless.</div>',
                 },
                 wh: {
                     t: 'Hann',
-                    b: '<h3>Hann</h3><p>The default. -31 dB sidelobes, fast rolloff. Use this.</p>',
+                    b: '<h3>Hann Window</h3><p>The go-to window for general audio analysis. Named after Julius von Hann (sometimes incorrectly called "Hanning").</p><div class="fm">w[n] = 0.5 × (1 - cos(2πn / (N-1)))</div><p><strong>Sidelobe level:</strong> -31 dB with fast rolloff.</p><p><strong>Main lobe:</strong> Moderate width.</p><div class="kp">Use Hann unless you have a specific reason not to. It provides the best balance of leakage suppression and frequency resolution for most audio analysis tasks.</div>',
                 },
                 whm: {
                     t: 'Hamming',
-                    b: '<h3>Hamming</h3><p>Better first sidelobe (-42 dB) but slower rolloff. Speech processing default.</p>',
+                    b: '<h3>Hamming Window</h3><p>Similar to Hann but with a small pedestal — the window doesn\'t quite reach zero at the edges.</p><div class="fm">w[n] = 0.54 - 0.46 × cos(2πn / (N-1))</div><p><strong>Sidelobe level:</strong> -42 dB (better first sidelobe than Hann).</p><p><strong>Rolloff:</strong> Slower than Hann for distant sidelobes.</p><div class="kp">Traditional default in speech processing (e.g., MFCCs, formant analysis). The non-zero edges can cause issues with overlap-add reconstruction.</div>',
                 },
                 wb: {
                     t: 'Blackman',
-                    b: '<h3>Blackman</h3><p>Strongest suppression (-58 dB), widest main lobe.</p>',
+                    b: '<h3>Blackman Window</h3><p>Three-term cosine window with the strongest sidelobe suppression of the four options here.</p><div class="fm">w[n] = 0.42 - 0.5cos(2πn/(N-1)) + 0.08cos(4πn/(N-1))</div><p><strong>Sidelobe level:</strong> -58 dB (excellent suppression).</p><p><strong>Main lobe:</strong> Widest — frequency peaks are most blurred.</p><div class="kp">Use when you need very clean spectra with minimal leakage (e.g., identifying weak tones near strong ones). The wider main lobe means you may need a larger FFT to compensate for lost resolution.</div>',
                 },
                 zp: {
                     t: 'Zero-Padding',
-                    b: '<h3>Zero-Padding</h3><p>Interpolates between bins (smoother curve). Does NOT improve real resolution.</p>',
+                    b: '<h3>Zero-Padding</h3><p>Appends zeros to the signal before FFT, increasing the number of output bins.</p><p><strong>2×:</strong> Doubles bins — interpolates between existing values for smoother appearance.</p><p><strong>4×:</strong> Quadruples bins — very smooth spectral envelope.</p><div class="kp">Important: zero-padding does NOT improve real frequency resolution (Δf is still fs/N_original). It only interpolates between the bins you already have. Think of it as "upsampling" the frequency axis. Useful for visualization and peak detection, but don\'t mistake the smoother curve for actual new information.</div>',
                 },
                 dr: {
                     t: 'Dynamic Range',
-                    b: '<h3>Dynamic Range</h3><p>dB floor for display. 60 dB = signals down to 1/1000th of peak.</p>',
+                    b: '<h3>Dynamic Range</h3><p>Controls the dB floor for the display. Only affects visualization, not the actual data.</p><p><strong>40 dB:</strong> Shows signals down to 1/100th of peak amplitude. Good for strong, clean signals.</p><p><strong>60 dB:</strong> Shows down to 1/1000th. Good default.</p><p><strong>90-120 dB:</strong> Shows very quiet components. Useful for finding weak harmonics or noise floor.</p><div class="kp">If the spectrogram looks mostly bright, decrease the range. If it looks mostly dark, increase it. The goal is to see meaningful structure.</div>',
                 },
                 mf: {
                     t: 'Max Frequency',
-                    b: '<h3>Max Display Freq</h3><p>Display crop only. Most household sounds < 8 kHz.</p>',
+                    b: '<h3>Max Display Frequency</h3><p>Crops the frequency axis display. Does not affect analysis — just zooms into the range you care about.</p><p>Most useful audio content lives below 8 kHz:</p><p><strong>Speech fundamentals:</strong> 80-300 Hz<br><strong>Speech formants:</strong> 300-3500 Hz<br><strong>Music fundamentals:</strong> 30-4000 Hz<br><strong>Household sounds:</strong> 50-8000 Hz<br><strong>Sibilance/cymbals:</strong> 6000-16000 Hz</p><div class="kp">For the construction audio, try 50-8000 Hz to focus on hammering, sawing, and motor sounds.</div>',
                 },
                 pre: {
                     t: 'Presets',
-                    b: '<h3>Presets</h3><p><strong>3 Tones:</strong> Try band-extracting 400-500 Hz to isolate the 440 Hz tone. <strong>Square:</strong> Only odd harmonics visible in Fourier Series. <strong>Chirp:</strong> Sweep visible as diagonal in STFT.</p>',
+                    b: '<h3>Synthetic Signal Presets</h3><p>Clean, mathematically defined signals for learning and testing:</p><p><strong>440+1k+2.5k Hz:</strong> Three pure sine waves. Perfect for testing band extraction — isolate each tone by setting the band around its frequency. Try 400-500 Hz to hear only the 440 Hz component.</p><p><strong>Chirp:</strong> Frequency sweep from 100 to 4000 Hz. Shows as a diagonal line on the STFT spectrogram — a great visual demo of time-frequency analysis.</p><p><strong>Impulses:</strong> Periodic clicks with exponential decay. Broadband energy (all frequencies at once). Tests how your filter handles transients.</p><p><strong>C Major:</strong> Six-note chord with harmonics. Rich harmonic structure visible in Fourier Series mode.</p><p><strong>Square:</strong> Square wave at 200 Hz. Only odd harmonics (200, 600, 1000, 1400...) — the missing even harmonics are visible in the Fourier Series decomposition.</p>',
                 },
                 fi: {
                     t: 'File Input',
-                    b: '<h3>Audio Loading</h3><p>Browser decodes via Web Audio API. Stereo mixed to mono. 30s max.</p>',
+                    b: '<h3>Audio File Loading</h3><p>Supports WAV, MP3, OGG, FLAC, and M4A formats. The browser\'s Web Audio API handles decoding.</p><p><strong>Stereo → Mono:</strong> Multi-channel audio is automatically mixed down to mono (averaged across channels).</p><p><strong>Duration limit:</strong> 30 seconds maximum. Longer files are truncated. This keeps FFT computation fast enough for interactive use.</p><p><strong>Sample rate:</strong> Preserved from the original file. All frequency limits (Nyquist, max display freq, band cutoffs) automatically adjust to match.</p><div class="kp">For best results with feature isolation, use recordings where the target sound (e.g., hammering) is clearly present. The extraction tools work on frequency content — they can\'t separate sounds that occupy the exact same frequencies.</div>',
                 },
                 pfs: {
                     t: 'Sample Rate',
-                    b: '<h3>fs</h3><p>Samples/sec. Nyquist = fs/2.</p>',
+                    b: '<h3>Sample Rate (fs)</h3><p>The number of amplitude measurements taken per second. Determines the maximum frequency that can be represented.</p><div class="fm">fs samples/second</div><p><strong>44,100 Hz:</strong> CD quality. Captures frequencies up to 22,050 Hz — well above human hearing range (~20 kHz).</p><p><strong>48,000 Hz:</strong> Professional audio/video standard.</p><div class="kp">The sample rate is fixed by the audio file. All other frequency parameters (Nyquist, band cutoffs, frequency resolution) derive from it.</div>',
                 },
                 pny: {
                     t: 'Nyquist',
-                    b: '<h3>Nyquist</h3><p>Max representable frequency = fs/2.</p>',
+                    b: '<h3>Nyquist Frequency</h3><p>The highest frequency that can be represented at a given sample rate. Named after Harry Nyquist.</p><div class="fm">f_Nyquist = fs / 2</div><p>Frequencies above this limit would "alias" — appear as phantom lower frequencies. This is why the band cutoff sliders stop at Nyquist.</p><div class="kp">The Shannon-Nyquist theorem: to faithfully capture a frequency f, you must sample at ≥ 2f. At 44.1 kHz, the max is 22,050 Hz.</div>',
                 },
                 pN: {
-                    t: 'N',
-                    b: '<h3>N</h3><p>Total samples. Duration = N/fs.</p>',
+                    t: 'N (Total Samples)',
+                    b: '<h3>N — Total Samples</h3><p>The total number of amplitude values in the loaded signal.</p><div class="fm">Duration = N / fs</div><p>For a 2-second signal at 44.1 kHz: N = 88,200 samples. This is also the FFT size when computing the full-signal spectrum (non-STFT mode).</p>',
                 },
                 pdf: {
                     t: 'Δf',
-                    b: '<h3>Δf</h3><p>Frequency resolution = fs/n_fft.</p>',
+                    b: '<h3>Δf — Frequency Resolution</h3><p>The spacing between adjacent frequency bins in the FFT output.</p><div class="fm">Δf = fs / N_fft</div><p>Smaller Δf = you can distinguish closer frequencies. But achieving smaller Δf requires a longer FFT window, which blurs time resolution.</p><p><strong>Example:</strong> At 44.1 kHz with n_fft=1024: Δf = 43.1 Hz. Two tones at 440 Hz and 460 Hz (20 Hz apart) would fall in the same bin and be indistinguishable. With n_fft=4096: Δf = 10.8 Hz — now they\'re in separate bins.</p>',
                 },
                 pdt: {
                     t: 'Δt',
-                    b: '<h3>Δt</h3><p>Time resolution = hop/fs.</p>',
+                    b: '<h3>Δt — Time Resolution</h3><p>The time between consecutive STFT frames (spectrogram columns).</p><div class="fm">Δt = hop / fs = n_fft × (1 - overlap%) / fs</div><p>Smaller Δt = finer time resolution, more frames to compute. At n_fft=1024, 75% overlap, 44.1 kHz: Δt ≈ 5.8ms — each spectrogram column represents ~6ms of audio.</p>',
                 },
                 pbn: {
                     t: 'Bins',
-                    b: '<h3>Freq Bins</h3><p>n_fft/2 + 1 unique bins.</p>',
+                    b: '<h3>Frequency Bins</h3><p>The number of unique frequency values in the FFT output.</p><div class="fm">bins = N_fft / 2 + 1</div><p>Due to the symmetry of real-valued FFT, only the first half of the output is unique (plus the DC and Nyquist bins). With n_fft=1024: 513 bins from 0 Hz to Nyquist.</p>',
                 },
                 pfr: {
                     t: 'Frames',
-                    b: '<h3>Time Frames</h3><p>≈ (N-n_fft)/hop + 1 columns.</p>',
+                    b: '<h3>Time Frames</h3><p>The number of columns in the spectrogram — each one is a separate FFT of an overlapping window.</p><div class="fm">frames ≈ (N - n_fft) / hop + 1</div><p>More frames = finer time axis but slower computation. Controlled by n_fft and overlap percentage.</p>',
                 },
                 psh: {
                     t: 'Shape',
-                    b: '<h3>Shape</h3><p>Spectrogram matrix dimensions.</p>',
+                    b: '<h3>Spectrogram Shape</h3><p>The dimensions of the spectrogram matrix: bins × frames. This is the 2D data structure that the STFT produces.</p><p>Each cell contains the magnitude (or dB value) at a specific frequency and time. The colormap maps these values to pixel colors.</p>',
                 },
                 fsW: {
                     t: 'FS Window',
-                    b: '<h3>FS Window Size</h3><p>Samples per period. Fundamental = fs/window_size.</p>',
+                    b: '<h3>Fourier Series — Window Size</h3><p>The number of samples treated as one period of the signal. This determines the fundamental frequency:</p><div class="fm">f₁ = fs / window_size</div><p>All harmonics are integer multiples of f₁. Larger window = lower fundamental = more harmonics available for reconstruction.</p><div class="kp">The Fourier Series assumes the window is one complete period that repeats forever. This is different from the FFT, which analyzes the signal as a whole. The "tiled" view shows this periodic assumption — the window is repeated left and right.</div>',
                 },
                 fsH: {
                     t: 'Harmonics',
-                    b: '<h3>Harmonics</h3><p>How many sine components to include. More = better reconstruction.</p>',
+                    b: '<h3>Fourier Series — Number of Harmonics</h3><p>How many sine/cosine components to include in the reconstruction (k = 0 to k = harmonics).</p><p><strong>k=0:</strong> DC offset (average value).</p><p><strong>k=1:</strong> Fundamental frequency f₁.</p><p><strong>k=2,3,...:</strong> Overtones at 2f₁, 3f₁, etc.</p><p>Watch the green reconstruction converge on the white original as you add more harmonics. This is Fourier\'s insight: <em>any</em> periodic signal can be decomposed into a sum of sines and cosines.</p><div class="kp">For a square wave, you need many harmonics (odd only: 1, 3, 5, 7...) to approximate the sharp edges. The "Gibbs phenomenon" — the persistent overshoot near discontinuities — never fully goes away no matter how many harmonics you add.</div>',
                 },
                 fsO: {
                     t: 'Offset',
-                    b: '<h3>Window Position</h3><p>Where in the audio to grab the period.</p>',
+                    b: '<h3>Window Offset Position</h3><p>Where in the audio signal to grab the window for Fourier Series analysis. Drag to slide the analysis window through the signal.</p><p>The orange-highlighted region on the waveform shows the current window position. Different positions capture different local frequency content.</p><div class="kp">For a signal with changing frequency content (like the chirp preset), moving the offset changes which harmonics are detected. For a stationary signal (like the tones preset), all positions give similar results.</div>',
                 },
                 fsR: {
                     t: 'Reconstruction',
-                    b: '<h3>Reconstruction</h3><p>White = original. Green = sum of harmonics. In EXTRACTED playback mode, you hear the green signal.</p>',
+                    b: '<h3>Fourier Series Reconstruction</h3><p><strong>White line:</strong> Original signal within the selected window.</p><p><strong>Green line:</strong> Sum of the first k harmonics (reconstruction).</p><p>As you increase the number of harmonics, the green line converges toward the white line. With enough harmonics, the reconstruction becomes indistinguishable from the original.</p><p>In EXTRACTED playback mode with the Fourier Series tab active, you hear this green reconstruction tiled across the full signal duration.</p>',
                 },
                 fsHr: {
-                    t: 'Harmonics',
-                    b: '<h3>Individual Harmonics</h3><p>Each row = one sine wave at k × fundamental freq. Color-coded by harmonic number.</p>',
+                    t: 'Individual Harmonics',
+                    b: '<h3>Individual Harmonics</h3><p>Each row shows one harmonic component — a single sine wave at frequency k × f₁:</p><p><strong>k=0:</strong> DC component (flat line at the signal\'s average value).</p><p><strong>k=1:</strong> Fundamental — the lowest frequency, one complete cycle per window.</p><p><strong>k=2+:</strong> Overtones — integer multiples of the fundamental. Progressively higher frequencies, often progressively smaller amplitudes.</p><p>The amplitude and phase of each harmonic are extracted via FFT of the windowed signal. The color of each trace matches its position in the harmonic series.</p><div class="kp">In a rich musical tone (like the C Major chord), you\'ll see significant energy at many harmonics. In a pure sine wave, only k=1 has energy. The distribution of energy across harmonics is what gives sounds their unique "timbre" or character.</div>',
                 },
+                // v6 lessons
+                isoMode: {
+                    t: 'Isolation Mode',
+                    b: '<h3>Isolation Modes</h3><p>Four different approaches to extracting sounds from audio:</p><p><strong>Single Band:</strong> Classic bandpass filter with smooth Butterworth rolloff. Best for isolating a single frequency range (e.g., just the bass, just the highs).</p><p><strong>Multi-Band:</strong> Define multiple frequency ranges simultaneously. Essential for sounds that span several frequency regions (e.g., a hammer strike has both low thud and high crack).</p><p><strong>Spectral Subtraction:</strong> Estimate background noise from a quiet section, then subtract it from the entire signal. Great for denoising.</p><p><strong>Combined:</strong> Chain spectral subtraction with multi-band filtering for maximum isolation power.</p><div class="kp">Each mode has its own collapsible educational panel — click "? Learn about this mode" to expand it.</div>',
+                },
+                wetDryCtrl: {
+                    t: 'Wet/Dry Mix',
+                    b: '<h3>Wet/Dry Mix</h3><p>Controls the blend between original ("dry") and processed ("wet") audio:</p><p><strong>0%:</strong> 100% original signal, no extraction applied.</p><p><strong>50%:</strong> Equal mix of original and extracted.</p><p><strong>100%:</strong> Fully extracted/processed signal only.</p><div class="fm">output = (1 - mix) × original + mix × extracted</div><p>The ORIGINAL/EXTRACTED toggle acts as a bypass — it instantly mutes/unmutes the extraction without moving the mix slider. This lets you A/B compare at any mix level.</p><div class="kp">Tip: Sweep the mix slider slowly while listening to hear exactly how the extraction changes the audio character. Values around 70-90% often sound more natural than 100% because they retain some original context.</div>',
+                },
+                rolloffCtrl: {
+                    t: 'Filter Rolloff',
+                    b: '<h3>Butterworth Rolloff Order</h3><p>Controls how sharply the filter transitions from passband (full signal) to stopband (silence). This is the "N" in the Butterworth formula:</p><div class="fm">|H(f)| = 1 / sqrt(1 + (f/fc)^(2N))</div><p>Each unit of order adds approximately <strong>20 dB/decade</strong> of rolloff steepness:</p><p><strong>Order 1:</strong> Very gentle — frequencies near the cutoff are only slightly attenuated. Good for subtle shaping.</p><p><strong>Order 4:</strong> Standard — a good balance between sharpness and smoothness.</p><p><strong>Order 8-12:</strong> Very sharp — approaches a brick-wall filter. Can cause "ringing" (oscillation near the cutoff) on transient sounds like drum hits.</p><div class="kp">The amber gain curve on the FFT plot shows the exact filter shape. Watch how it changes as you adjust the order.</div>',
+                },
+                noiseRegion: {
+                    t: 'Noise Region',
+                    b: '<h3>Noise Region Selection</h3><p>Spectral subtraction needs a reference: what does "just noise" sound like? Select a portion of the audio that contains <em>only</em> background noise (no target sounds).</p><p><strong>Noise start/end:</strong> Define the time range. The orange-highlighted region on the waveform shows your selection.</p><p><strong>Capture Noise Profile:</strong> Computes the FFT of the selected region and stores its magnitude spectrum as the noise template.</p><div class="kp">Tips for good noise profiles:<br>• Choose at least 0.2 seconds of noise<br>• Pick a section with consistent, representative noise<br>• Avoid sections with any target sounds (even faint ones)<br>• If results are poor, try a different noise section</div>',
+                },
+                overSubCtrl: {
+                    t: 'Over-subtraction',
+                    b: '<h3>Over-subtraction Factor (α)</h3><p>Multiplier applied to the noise magnitude before subtraction:</p><div class="fm">|S_clean| = |S| - α × |N|</div><p><strong>α = 1.0:</strong> Subtracts exactly the estimated noise level. Starting point.</p><p><strong>α > 1.0:</strong> Subtracts more aggressively. Removes more noise but risks distorting the target signal.</p><p><strong>α < 1.0:</strong> Gentle subtraction. Some noise remains but less distortion risk.</p><div class="kp">Common range: 1.0 to 2.5. Start at 1.0, increase if noise persists, decrease if the target sounds distorted or "underwater."</div>',
+                },
+                specFloorCtrl: {
+                    t: 'Spectral Floor',
+                    b: '<h3>Spectral Floor (β)</h3><p>Minimum magnitude floor to prevent negative values after subtraction:</p><div class="fm">|S_clean| = max(|S| - α×|N|, β × |S|)</div><p>Without this floor, some frequency bins would go to zero or negative, creating artifacts called <strong>"musical noise"</strong> — random chirpy, tonal artifacts.</p><p><strong>β = 0.01:</strong> Low floor — more noise removed but risk of musical noise.</p><p><strong>β = 0.05-0.1:</strong> Higher floor — smoother result, some noise leaks through.</p><div class="kp">If you hear chirpy/watery artifacts, increase β. If too much noise remains, decrease β (and possibly increase α to compensate).</div>',
+                },
+                combOrderCtrl: {
+                    t: 'Processing Order',
+                    b: '<h3>Processing Order</h3><p>When combining spectral subtraction with band filtering, the order matters:</p><p><strong>Spectral Sub → Band Filter:</strong> First denoise the full signal, then extract frequency bands from the clean signal. Best for:</p><ul style="color:rgba(255,255,255,.5);font-size:11px;margin:4px 0 4px 16px"><li>Broadband noise (hiss, wind, HVAC hum)</li><li>When noise and target overlap in frequency</li></ul><p><strong>Band Filter → Spectral Sub:</strong> First isolate your bands of interest, then denoise within those bands. Best for:</p><ul style="color:rgba(255,255,255,.5);font-size:11px;margin:4px 0 4px 16px"><li>When target is in a specific frequency range</li><li>Reduces computational cost (denoising smaller signal)</li></ul>',
+                },
+                selRegion: {
+                    t: 'Waveform Selection',
+                    b: '<h3>Region Selection</h3><p>Drag on the waveform to select a time region. Playback (both original and extracted) will be confined to this region.</p><p><strong>Drag:</strong> Click and drag horizontally to select a region (shown with green edges and dimmed outside areas).</p><p><strong>Click:</strong> Single click to seek the playhead to that position.</p><p><strong>Double-click:</strong> Clear the selection (play full audio again).</p><div class="kp">This is powerful for isolating specific events — select just the moment a hammer strikes, then compare original vs extracted to hear how well your filter settings capture that specific sound.</div>',
+                },
+                multiBandCtrl: {
+                    t: 'Multi-Band Controls',
+                    b: '<h3>Multi-Band Filter Controls</h3><p>Each band defines an independent frequency range to extract:</p><p><strong>Low/High cutoff:</strong> Frequency boundaries of the band.</p><p><strong>Rolloff:</strong> Butterworth order for this specific band (each band can have different sharpness).</p><p><strong>+ Add Band:</strong> Create a new band with default settings.</p><p><strong>✕ Remove:</strong> Delete a band.</p><p>Bands are combined using <strong>maximum gain</strong> (union) at each frequency — overlapping bands don\'t amplify.</p><div class="kp">On the STFT spectrogram tab, you can also click-drag to create bands visually. Hold Shift to add bands instead of replacing.</div>',
+                },
+            };
+            // ── EDUCATIONAL CONTENT (v6) ──
+            const EDU = {
+                single: '<h3>Single-Band Extraction (Butterworth Rolloff)</h3><p>A bandpass filter passes frequencies within a range and attenuates those outside. Unlike the simple brick-wall approach (which abruptly zeros out bins), a Butterworth filter applies a smooth gain curve that gradually rolls off.</p><div class="fm">|H(f)| = 1 / sqrt(1 + (f/fc)^(2N))</div><p><strong>Rolloff order (N)</strong> controls the steepness of the transition:</p><div class="kp">Order 1: gentle slope (~20 dB/decade). Order 4: standard. Order 12: nearly brick-wall. Higher orders give sharper cutoffs but can introduce ringing artifacts on transient sounds.</div><p>The amber curve on the FFT plot shows the actual filter gain shape. Try adjusting the order while listening to extracted audio to hear the difference.</p>',
+                multi: '<h3>Multi-Band Filtering</h3><p>Real-world sounds span multiple frequency regions. A hammer strike has a low-frequency thud (100-500 Hz) <em>and</em> a high-frequency crack (2-6 kHz). Single-band filtering can only capture one region at a time.</p><p>Multi-band mode lets you define several frequency bands, each with its own cutoff frequencies and rolloff. The combined output uses the <strong>maximum gain</strong> across all bands at each frequency bin (union, not sum), preventing amplification of overlapping regions.</p><div class="kp">Tip: On the STFT tab, click-drag to select a band visually. Hold Shift to add additional bands. Each band gets its own color on the spectrogram.</div>',
+                spectral:
+                    '<h3>Spectral Subtraction</h3><p>Instead of selecting which frequencies to <em>keep</em>, spectral subtraction estimates the <em>noise</em> and removes it. The process:</p><p>1. Select a quiet section of audio (just background noise)<br>2. Capture its frequency profile<br>3. Subtract that profile from the entire signal</p><div class="fm">|S_clean(f)| = max( |S(f)| - α·|N(f)|, β·|S(f)| )</div><p><strong>Over-subtraction (α):</strong> Values above 1.0 remove more noise but risk distorting the target signal. Start at 1.0 and increase if noise remains.</p><p><strong>Spectral floor (β):</strong> Prevents the result from going below β × original magnitude. Too low → "musical noise" (chirpy artifacts from random residual bins). Too high → noise leaks through.</p><div class="kp">This is the same principle used in professional noise reduction (e.g., Audacity\'s noise reduction, iZotope RX). The quality depends heavily on having a good noise profile from a representative quiet section.</div>',
+                combined:
+                    '<h3>Combined: Spectral Subtraction + Multi-Band</h3><p>Chain both techniques for maximum isolation power. The processing order matters:</p><p><strong>Spectral Sub → Band Filter:</strong> First clean noise from the entire signal, then extract your target frequency bands from the cleaned audio. Best when noise is broadband (hiss, hum, ambient rumble).</p><p><strong>Band Filter → Spectral Sub:</strong> First isolate your bands of interest, then apply noise reduction within those bands. Better when noise is concentrated in the same frequency region as your target sound.</p><div class="kp">For construction audio: try Spectral-first to remove ambient noise, then define bands around hammer-strike frequencies (200-800 Hz for thud, 2-5 kHz for impact crack).</div>',
             };
             let lCol = false;
             function L(k) {
@@ -1345,7 +1878,7 @@
                 return { spec: sp, numBins: nb, numFrames: nfr, fftSize: fs };
             }
 
-            // ── BANDPASS FILTER via FFT ──
+            // ── BANDPASS FILTER via FFT (legacy brick-wall) ──
             function bandpassFilter(sig, sr, loHz, hiHz) {
                 let n = 1;
                 while (n < sig.length) n <<= 1;
@@ -1367,6 +1900,160 @@
                             re[i] = 0;
                             im[i] = 0;
                         }
+                    }
+                }
+                ifI(re, im);
+                const out = new Float64Array(sig.length);
+                for (let i = 0; i < sig.length; i++) out[i] = re[i];
+                return out;
+            }
+
+            // ── BUTTERWORTH GAIN ──
+            function butterworthGain(f, fc, order, isHighpass) {
+                if (isHighpass) {
+                    if (f <= 0) return 0;
+                    return 1 / Math.sqrt(1 + Math.pow(fc / f, 2 * order));
+                } else {
+                    if (fc <= 0) return 0;
+                    return 1 / Math.sqrt(1 + Math.pow(f / fc, 2 * order));
+                }
+            }
+
+            // ── SMOOTH BANDPASS (Butterworth) ──
+            function smoothBandpass(sig, sr, loHz, hiHz, order) {
+                let n = 1;
+                while (n < sig.length) n <<= 1;
+                const re = new Float64Array(n),
+                    im = new Float64Array(n);
+                for (let i = 0; i < sig.length; i++) re[i] = sig[i];
+                fI(re, im);
+                for (let i = 0; i <= n / 2; i++) {
+                    const freq = (i * sr) / n;
+                    let gain = 1;
+                    if (loHz > 0)
+                        gain *= butterworthGain(freq, loHz, order, true);
+                    if (hiHz < sr / 2)
+                        gain *= butterworthGain(freq, hiHz, order, false);
+                    re[i] *= gain;
+                    im[i] *= gain;
+                    if (i > 0 && i < n / 2) {
+                        re[n - i] *= gain;
+                        im[n - i] *= gain;
+                    }
+                }
+                ifI(re, im);
+                const out = new Float64Array(sig.length);
+                for (let i = 0; i < sig.length; i++) out[i] = re[i];
+                return out;
+            }
+
+            // ── MULTI-BAND FILTER ──
+            function multiBandFilter(sig, sr, bands) {
+                if (!bands.length) return sig.slice();
+                let n = 1;
+                while (n < sig.length) n <<= 1;
+                const re = new Float64Array(n),
+                    im = new Float64Array(n);
+                for (let i = 0; i < sig.length; i++) re[i] = sig[i];
+                fI(re, im);
+                const outRe = new Float64Array(n),
+                    outIm = new Float64Array(n);
+                for (let i = 0; i <= n / 2; i++) {
+                    const freq = (i * sr) / n;
+                    let maxGain = 0;
+                    for (const b of bands) {
+                        let g = 1;
+                        if (b.lo > 0)
+                            g *= butterworthGain(
+                                freq,
+                                b.lo,
+                                b.rolloff || 4,
+                                true,
+                            );
+                        if (b.hi < sr / 2)
+                            g *= butterworthGain(
+                                freq,
+                                b.hi,
+                                b.rolloff || 4,
+                                false,
+                            );
+                        if (g > maxGain) maxGain = g;
+                    }
+                    outRe[i] = re[i] * maxGain;
+                    outIm[i] = im[i] * maxGain;
+                    if (i > 0 && i < n / 2) {
+                        outRe[n - i] = re[n - i] * maxGain;
+                        outIm[n - i] = im[n - i] * maxGain;
+                    }
+                }
+                ifI(outRe, outIm);
+                const out = new Float64Array(sig.length);
+                for (let i = 0; i < sig.length; i++) out[i] = outRe[i];
+                return out;
+            }
+
+            // ── SPECTRAL SUBTRACTION ──
+            function captureNoise() {
+                if (!S.sig) return;
+                const s = Math.floor(S.noiseStart * S.sig.length);
+                const e = Math.floor(S.noiseEnd * S.sig.length);
+                const len = e - s;
+                if (len < 256) {
+                    alert(
+                        'Select a longer noise region (at least 256 samples)',
+                    );
+                    return;
+                }
+                let n = 1;
+                while (n < len) n <<= 1;
+                const re = new Float64Array(n),
+                    im = new Float64Array(n);
+                for (let i = 0; i < len; i++) re[i] = S.sig[s + i];
+                fI(re, im);
+                const profile = new Float64Array(n / 2 + 1);
+                for (let i = 0; i <= n / 2; i++)
+                    profile[i] = Math.sqrt(re[i] * re[i] + im[i] * im[i]);
+                S.noiseProfile = profile;
+                S.noiseFFTSize = n;
+                const st = $('noiseStatus');
+                if (st) st.textContent = 'Captured (' + len + ' samples)';
+                const cs = $('cNoiseStatus');
+                if (cs) cs.textContent = 'Captured (' + len + ' samples)';
+                recomputeExtraction();
+                if (!S.playing) rAll();
+            }
+
+            function spectralSubtract(
+                sig,
+                sr,
+                noiseProfile,
+                noiseFftSize,
+                alpha,
+                beta,
+            ) {
+                let n = 1;
+                while (n < sig.length) n <<= 1;
+                const re = new Float64Array(n),
+                    im = new Float64Array(n);
+                for (let i = 0; i < sig.length; i++) re[i] = sig[i];
+                fI(re, im);
+                const halfN = n / 2;
+                const halfNoise = noiseFftSize / 2;
+                for (let i = 0; i <= halfN; i++) {
+                    const mag = Math.sqrt(re[i] * re[i] + im[i] * im[i]);
+                    const phase = Math.atan2(im[i], re[i]);
+                    const nIdx = Math.min(
+                        Math.round((i / halfN) * halfNoise),
+                        noiseProfile.length - 1,
+                    );
+                    const noiseMag = noiseProfile[nIdx] || 0;
+                    let cleanMag = mag - alpha * noiseMag;
+                    cleanMag = Math.max(cleanMag, beta * mag);
+                    re[i] = cleanMag * Math.cos(phase);
+                    im[i] = cleanMag * Math.sin(phase);
+                    if (i > 0 && i < halfN) {
+                        re[n - i] = cleanMag * Math.cos(-phase);
+                        im[n - i] = cleanMag * Math.sin(-phase);
                     }
                 }
                 ifI(re, im);
@@ -1585,6 +2272,23 @@
                 showOv: true,
                 fsSig: null,
                 fsBuf: null,
+                // v6: region selection (fraction of full signal, 0-1)
+                selStart: 0,
+                selEnd: 1,
+                hasSelection: false,
+                // v6: isolation modes
+                isoMode: 'single',
+                rolloff: 4,
+                wetDry: 1.0,
+                prevWetDry: 1.0,
+                bands: [{ lo: 200, hi: 2000, rolloff: 4 }],
+                noiseProfile: null,
+                noiseFFTSize: 0,
+                noiseStart: 0,
+                noiseEnd: 0.1,
+                overSub: 1.0,
+                specFloor: 0.01,
+                combOrder: 'spectral-first',
             };
 
             // ═══════════════════════════════════════════════════════════════
@@ -1593,28 +2297,109 @@
             function recomputeExtraction() {
                 if (!S.sig) return;
                 if (S.tab === 'fs') {
-                    // FS reconstruction for playback
                     const off = Math.floor(
                         (S.fsOff / 1000) * Math.max(0, S.sig.length - S.fsW),
                     );
                     const { harmonics, chunk } = compFS(S.sig, off, S.fsW);
                     const recon = reconstructFS(harmonics, S.fsW, S.fsH);
-                    // Tile reconstruction to signal length
                     const out = new Float64Array(S.sig.length);
                     for (let i = 0; i < out.length; i++)
                         out[i] = recon[i % S.fsW];
                     S.fsSig = out;
                     S.fsBuf = null;
                 } else {
-                    S.extSig = bandpassFilter(S.sig, S.sr, S.bLo, S.bHi);
+                    switch (S.isoMode) {
+                        case 'single':
+                            S.extSig = smoothBandpass(
+                                S.sig,
+                                S.sr,
+                                S.bLo,
+                                S.bHi,
+                                S.rolloff,
+                            );
+                            break;
+                        case 'multi':
+                            S.extSig = multiBandFilter(S.sig, S.sr, S.bands);
+                            break;
+                        case 'spectral':
+                            if (S.noiseProfile) {
+                                S.extSig = spectralSubtract(
+                                    S.sig,
+                                    S.sr,
+                                    S.noiseProfile,
+                                    S.noiseFFTSize,
+                                    S.overSub,
+                                    S.specFloor,
+                                );
+                            } else {
+                                S.extSig = S.sig.slice();
+                            }
+                            break;
+                        case 'combined': {
+                            let processed = S.sig;
+                            if (S.combOrder === 'spectral-first') {
+                                if (S.noiseProfile)
+                                    processed = spectralSubtract(
+                                        processed,
+                                        S.sr,
+                                        S.noiseProfile,
+                                        S.noiseFFTSize,
+                                        S.overSub,
+                                        S.specFloor,
+                                    );
+                                if (S.bands.length > 0)
+                                    processed = multiBandFilter(
+                                        processed,
+                                        S.sr,
+                                        S.bands,
+                                    );
+                            } else {
+                                if (S.bands.length > 0)
+                                    processed = multiBandFilter(
+                                        processed,
+                                        S.sr,
+                                        S.bands,
+                                    );
+                                if (S.noiseProfile)
+                                    processed = spectralSubtract(
+                                        processed,
+                                        S.sr,
+                                        S.noiseProfile,
+                                        S.noiseFFTSize,
+                                        S.overSub,
+                                        S.specFloor,
+                                    );
+                            }
+                            S.extSig = processed;
+                            break;
+                        }
+                    }
                     S.extBuf = null;
                 }
             }
 
             function getPlaySig() {
-                if (!S.playExt) return S.sig;
-                if (S.tab === 'fs') return S.fsSig || S.sig;
-                return S.extSig || S.sig;
+                const orig = S.sig;
+                if (!orig) return null;
+                let ext;
+                if (S.tab === 'fs') {
+                    ext = S.fsSig || orig;
+                } else {
+                    ext = S.extSig || orig;
+                }
+                // Blend original and extracted based on wet/dry
+                let mixed;
+                if (!S.playExt || S.wetDry <= 0.0) {
+                    mixed = orig;
+                } else if (S.wetDry >= 1.0) {
+                    mixed = ext;
+                } else {
+                    mixed = new Float64Array(orig.length);
+                    const w = S.wetDry;
+                    for (let i = 0; i < orig.length; i++)
+                        mixed[i] = (1 - w) * orig[i] + w * ext[i];
+                }
+                return mixed;
             }
 
             // ═══════════════════════════════════════════════════════════════
@@ -1646,23 +2431,31 @@
                 const ps = getPlaySig();
                 if (!ps) return;
                 const buf = buildBuf(ps);
-                if (S.pOff >= S.dur - 0.01) S.pOff = 0;
+                // Duration is always from full signal
+                S.dur = S.sig.length / S.sr;
+                // Determine play region
+                const regStart = S.hasSelection ? S.selStart * S.dur : 0;
+                const regEnd = S.hasSelection ? S.selEnd * S.dur : S.dur;
+                // If playhead is outside region or at end, reset to region start
+                if (S.pOff < regStart || S.pOff >= regEnd - 0.01)
+                    S.pOff = regStart;
                 const s = S.aCtx.createBufferSource();
                 s.buffer = buf;
                 s.connect(S.aCtx.destination);
+                const playDuration = regEnd - S.pOff;
                 s.onended = () => {
                     if (S.playing) {
                         S.playing = false;
-                        S.pOff = S.dur;
+                        S.pOff = S.hasSelection ? regStart : S.dur;
                         updTr();
                         stopAL();
+                        if (!S.playing) rAll();
                     }
                 };
-                s.start(0, S.pOff);
+                s.start(0, S.pOff, playDuration);
                 S.sN = s;
                 S.pSt = S.aCtx.currentTime;
                 S.playing = true;
-                S.dur = ps.length / S.sr;
                 updTr();
                 startAL();
             }
@@ -1688,7 +2481,7 @@
                     S.sN = null;
                 }
                 S.playing = false;
-                S.pOff = 0;
+                S.pOff = S.hasSelection ? S.selStart * S.dur : 0;
                 updTr();
                 stopAL();
                 rAll();
@@ -1735,6 +2528,138 @@
                     : 'ORIGINAL';
                 $('extPlayB').classList.toggle('ext', S.playExt);
                 if (was) startA();
+            }
+
+            // ── MODE SWITCHING ──
+            function switchMode(mode) {
+                S.isoMode = mode;
+                document
+                    .querySelectorAll('#modeBtns .bt')
+                    .forEach(b =>
+                        b.classList.toggle('ac', b.dataset.m === mode),
+                    );
+                $('panSingle').style.display = mode === 'single' ? '' : 'none';
+                $('panMulti').style.display = mode === 'multi' ? '' : 'none';
+                $('panSpectral').style.display =
+                    mode === 'spectral' ? '' : 'none';
+                $('panCombined').style.display =
+                    mode === 'combined' ? '' : 'none';
+                renderBands();
+                recomputeExtraction();
+                if (!S.playing) rAll();
+            }
+
+            // ── MULTI-BAND UI ──
+            function addBand(lo, hi) {
+                const ny = S.sr / 2;
+                S.bands.push({
+                    lo: lo !== undefined ? Math.round(lo) : 200,
+                    hi: hi !== undefined ? Math.round(hi) : 2000,
+                    rolloff: 4,
+                });
+                renderBands();
+                recomputeExtraction();
+                if (!S.playing) rAll();
+            }
+            function removeBand(idx) {
+                S.bands.splice(idx, 1);
+                renderBands();
+                recomputeExtraction();
+                if (!S.playing) rAll();
+            }
+            function renderBands() {
+                const container =
+                    S.isoMode === 'combined' ? $('cBandList') : $('bandList');
+                const other =
+                    S.isoMode === 'combined' ? $('bandList') : $('cBandList');
+                if (other) other.innerHTML = '';
+                if (!container) return;
+                container.innerHTML = '';
+                const ny = S.sr / 2;
+                S.bands.forEach((b, idx) => {
+                    const col = HC[idx % HC.length];
+                    const row = document.createElement('div');
+                    row.className = 'band-row';
+                    row.innerHTML = `
+                        <div class="band-color" style="background:${col}"></div>
+                        <div class="band-ctrls">
+                            <div class="sr">
+                                <span class="srl">Low</span>
+                                <input type="range" min="0" max="${ny}" step="10" value="${b.lo}" data-idx="${idx}" data-f="lo" />
+                                <span class="srv band-val" data-idx="${idx}" data-f="lo">${b.lo} Hz</span>
+                            </div>
+                            <div class="sr">
+                                <span class="srl">High</span>
+                                <input type="range" min="0" max="${ny}" step="10" value="${b.hi}" data-idx="${idx}" data-f="hi" />
+                                <span class="srv band-val" data-idx="${idx}" data-f="hi">${b.hi} Hz</span>
+                            </div>
+                            <div class="sr">
+                                <span class="srl">Rolloff</span>
+                                <input type="range" min="1" max="12" step="1" value="${b.rolloff}" data-idx="${idx}" data-f="rolloff" />
+                                <span class="srv band-val" data-idx="${idx}" data-f="rolloff">${b.rolloff}</span>
+                            </div>
+                        </div>
+                        <button class="band-rm" onclick="removeBand(${idx})">✕</button>
+                    `;
+                    row.querySelectorAll('input[type=range]').forEach(inp => {
+                        inp.addEventListener('input', e => {
+                            const i = +e.target.dataset.idx,
+                                f = e.target.dataset.f;
+                            S.bands[i][f] = +e.target.value;
+                            const vEl = row.querySelector(
+                                `.band-val[data-idx="${i}"][data-f="${f}"]`,
+                            );
+                            if (vEl)
+                                vEl.textContent =
+                                    e.target.value +
+                                    (f === 'rolloff' ? '' : ' Hz');
+                            recomputeExtraction();
+                            if (!S.playing) rAll();
+                        });
+                    });
+                    container.appendChild(row);
+                });
+            }
+
+            // ── EDITABLE NUMBER VALUES ──
+            function makeEditable(el, opts) {
+                el.style.cursor = 'pointer';
+                el.title = 'Double-click to type exact value';
+                el.addEventListener('dblclick', function (e) {
+                    e.stopPropagation();
+                    const current = parseFloat(el.textContent);
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = isNaN(current) ? 0 : current;
+                    input.className = 'inline-edit';
+                    el.textContent = '';
+                    el.appendChild(input);
+                    input.focus();
+                    input.select();
+                    function commit() {
+                        let v = parseFloat(input.value);
+                        if (isNaN(v)) v = current;
+                        v = Math.max(opts.min, Math.min(opts.max, v));
+                        if (opts.step)
+                            v = Math.round(v / opts.step) * opts.step;
+                        el.textContent =
+                            (opts.fmt ? opts.fmt(v) : v) + (opts.suffix || '');
+                        opts.onChange(v);
+                    }
+                    input.addEventListener('keydown', ev => {
+                        if (ev.key === 'Enter') {
+                            ev.preventDefault();
+                            commit();
+                        }
+                        if (ev.key === 'Escape') {
+                            el.textContent =
+                                (opts.fmt ? opts.fmt(current) : current) +
+                                (opts.suffix || '');
+                        }
+                        ev.stopPropagation();
+                    });
+                    input.addEventListener('blur', commit);
+                });
             }
 
             function togOverlay() {
@@ -1828,6 +2753,25 @@
                     cx.lineWidth = 1;
                     cx.strokeRect(x0, 0, x1 - x0, H);
                 }
+                // Noise region highlight
+                if (
+                    (S.isoMode === 'spectral' || S.isoMode === 'combined') &&
+                    S.tab !== 'fs'
+                ) {
+                    const nx0 = S.noiseStart * W,
+                        nx1 = S.noiseEnd * W;
+                    cx.fillStyle = 'rgba(251,191,36,.08)';
+                    cx.fillRect(nx0, 0, nx1 - nx0, H);
+                    cx.strokeStyle = 'rgba(251,191,36,.25)';
+                    cx.lineWidth = 1;
+                    cx.setLineDash([3, 3]);
+                    cx.strokeRect(nx0, 0, nx1 - nx0, H);
+                    cx.setLineDash([]);
+                    cx.font = '8px "DM Mono",monospace';
+                    cx.fillStyle = 'rgba(251,191,36,.5)';
+                    cx.textAlign = 'center';
+                    cx.fillText('noise', (nx0 + nx1) / 2, 10);
+                }
                 // Original waveform
                 cx.beginPath();
                 cx.strokeStyle = '#3b82f6';
@@ -1877,6 +2821,37 @@
                 cx.moveTo(0, H / 2);
                 cx.lineTo(W, H / 2);
                 cx.stroke();
+                // Selection region
+                if (S.hasSelection) {
+                    const sx0 = S.selStart * W,
+                        sx1 = S.selEnd * W;
+                    // Dim areas outside selection
+                    cx.fillStyle = 'rgba(0,0,0,.45)';
+                    cx.fillRect(0, 0, sx0, H);
+                    cx.fillRect(sx1, 0, W - sx1, H);
+                    // Selection edges
+                    cx.strokeStyle = 'rgba(52,211,153,.7)';
+                    cx.lineWidth = 1.5;
+                    cx.beginPath();
+                    cx.moveTo(sx0, 0);
+                    cx.lineTo(sx0, H);
+                    cx.stroke();
+                    cx.beginPath();
+                    cx.moveTo(sx1, 0);
+                    cx.lineTo(sx1, H);
+                    cx.stroke();
+                    // Selection label
+                    cx.font = '8px "DM Mono",monospace';
+                    cx.fillStyle = 'rgba(52,211,153,.6)';
+                    cx.textAlign = 'center';
+                    const selDur =
+                        (S.selEnd - S.selStart) * (sig.length / S.sr);
+                    cx.fillText(
+                        selDur.toFixed(2) + 's selected',
+                        (sx0 + sx1) / 2,
+                        10,
+                    );
+                }
                 // Playhead
                 if (pf >= 0 && S.tab !== 'fs') {
                     const x = pf * W;
@@ -1900,8 +2875,34 @@
                     cx.fillStyle = '#22d3ee';
                     cx.fillText('■ extracted', 70, H - 4);
                 }
+                if (S.hasSelection) {
+                    cx.fillStyle = '#34d399';
+                    cx.fillText(
+                        '■ selected',
+                        S.showOv && ext ? 150 : 70,
+                        H - 4,
+                    );
+                }
                 $('wCap').textContent =
                     `${S.lbl} · ${sig.length.toLocaleString()} · ${S.sr} Hz · ${(sig.length / S.sr).toFixed(2)}s`;
+                // Selection detail caption
+                const selCapEl = $('selCap');
+                if (selCapEl) {
+                    if (S.hasSelection) {
+                        const sT = ((S.selStart * sig.length) / S.sr).toFixed(
+                            3,
+                        );
+                        const eT = ((S.selEnd * sig.length) / S.sr).toFixed(3);
+                        const dur = (
+                            ((S.selEnd - S.selStart) * sig.length) /
+                            S.sr
+                        ).toFixed(3);
+                        selCapEl.textContent = `Selection: ${sT}s — ${eT}s (${dur}s) · Drag waveform to select · Double-click to clear`;
+                    } else {
+                        selCapEl.textContent =
+                            'Drag on waveform to select a region for playback';
+                    }
+                }
             }
 
             function dFFT(pf) {
@@ -1938,32 +2939,90 @@
                 const p = { l: 48, r: 12, t: 12, b: 30 },
                     pW = W - p.l - p.r,
                     pH = H - p.t - p.b;
-                // Band highlight
-                const bx0 = p.l + (S.bLo / dm) * pW,
-                    bx1 = p.l + (Math.min(S.bHi, dm) / dm) * pW;
-                cx.fillStyle = 'rgba(34,211,238,.06)';
-                cx.fillRect(
-                    Math.max(bx0, p.l),
-                    p.t,
-                    Math.min(bx1, p.l + pW) - Math.max(bx0, p.l),
-                    pH,
-                );
-                cx.strokeStyle = 'rgba(34,211,238,.3)';
-                cx.lineWidth = 1;
-                cx.setLineDash([4, 4]);
-                if (S.bLo > 0 && S.bLo <= dm) {
+                // Band highlight(s)
+                if (S.isoMode === 'multi' || S.isoMode === 'combined') {
+                    S.bands.forEach((b, idx) => {
+                        const col = HC[idx % HC.length];
+                        const bx0 = p.l + (b.lo / dm) * pW,
+                            bx1 = p.l + (Math.min(b.hi, dm) / dm) * pW;
+                        cx.fillStyle = col + '12';
+                        cx.fillRect(
+                            Math.max(bx0, p.l),
+                            p.t,
+                            Math.min(bx1, p.l + pW) - Math.max(bx0, p.l),
+                            pH,
+                        );
+                        cx.strokeStyle = col + '66';
+                        cx.lineWidth = 1;
+                        cx.setLineDash([4, 4]);
+                        if (b.lo > 0 && b.lo <= dm) {
+                            cx.beginPath();
+                            cx.moveTo(bx0, p.t);
+                            cx.lineTo(bx0, p.t + pH);
+                            cx.stroke();
+                        }
+                        if (b.hi < dm) {
+                            cx.beginPath();
+                            cx.moveTo(bx1, p.t);
+                            cx.lineTo(bx1, p.t + pH);
+                            cx.stroke();
+                        }
+                        cx.setLineDash([]);
+                    });
+                } else if (S.isoMode === 'single') {
+                    const bx0 = p.l + (S.bLo / dm) * pW,
+                        bx1 = p.l + (Math.min(S.bHi, dm) / dm) * pW;
+                    cx.fillStyle = 'rgba(34,211,238,.06)';
+                    cx.fillRect(
+                        Math.max(bx0, p.l),
+                        p.t,
+                        Math.min(bx1, p.l + pW) - Math.max(bx0, p.l),
+                        pH,
+                    );
+                    cx.strokeStyle = 'rgba(34,211,238,.3)';
+                    cx.lineWidth = 1;
+                    cx.setLineDash([4, 4]);
+                    if (S.bLo > 0 && S.bLo <= dm) {
+                        cx.beginPath();
+                        cx.moveTo(bx0, p.t);
+                        cx.lineTo(bx0, p.t + pH);
+                        cx.stroke();
+                    }
+                    if (S.bHi < dm) {
+                        cx.beginPath();
+                        cx.moveTo(bx1, p.t);
+                        cx.lineTo(bx1, p.t + pH);
+                        cx.stroke();
+                    }
+                    cx.setLineDash([]);
+                    // Butterworth gain curve overlay
                     cx.beginPath();
-                    cx.moveTo(bx0, p.t);
-                    cx.lineTo(bx0, p.t + pH);
+                    cx.strokeStyle = 'rgba(251,191,36,.4)';
+                    cx.lineWidth = 1.5;
+                    for (let px = 0; px < pW; px++) {
+                        const freq = (px / pW) * dm;
+                        let gain = 1;
+                        if (S.bLo > 0)
+                            gain *= butterworthGain(
+                                freq,
+                                S.bLo,
+                                S.rolloff,
+                                true,
+                            );
+                        if (S.bHi < S.sr / 2)
+                            gain *= butterworthGain(
+                                freq,
+                                S.bHi,
+                                S.rolloff,
+                                false,
+                            );
+                        const y = p.t + pH - gain * pH;
+                        px === 0
+                            ? cx.moveTo(p.l + px, y)
+                            : cx.lineTo(p.l + px, y);
+                    }
                     cx.stroke();
                 }
-                if (S.bHi < dm) {
-                    cx.beginPath();
-                    cx.moveTo(bx1, p.t);
-                    cx.lineTo(bx1, p.t + pH);
-                    cx.stroke();
-                }
-                cx.setLineDash([]);
                 // Grid
                 cx.strokeStyle = 'rgba(255,255,255,.04)';
                 cx.lineWidth = 0.5;
@@ -1995,15 +3054,36 @@
                 cx.textAlign = 'right';
                 cx.fillText(mxD.toFixed(0) + 'dB', p.l - 3, p.t + 10);
                 // Band labels
-                cx.fillStyle = 'rgba(34,211,238,.5)';
                 cx.font = '9px "DM Mono",monospace';
                 cx.textAlign = 'center';
-                const bcx = (Math.max(bx0, p.l) + Math.min(bx1, p.l + pW)) / 2;
-                cx.fillText(
-                    `extracted: ${S.bLo}-${Math.min(S.bHi, Math.floor(dm))} Hz`,
-                    bcx,
-                    p.t + 12,
-                );
+                if (S.isoMode === 'single') {
+                    const bx0 = p.l + (S.bLo / dm) * pW,
+                        bx1 = p.l + (Math.min(S.bHi, dm) / dm) * pW;
+                    const bcx =
+                        (Math.max(bx0, p.l) + Math.min(bx1, p.l + pW)) / 2;
+                    cx.fillStyle = 'rgba(34,211,238,.5)';
+                    cx.fillText(
+                        `extracted: ${S.bLo}-${Math.min(S.bHi, Math.floor(dm))} Hz (order ${S.rolloff})`,
+                        bcx,
+                        p.t + 12,
+                    );
+                } else if (S.isoMode === 'multi' || S.isoMode === 'combined') {
+                    cx.fillStyle = 'rgba(167,139,250,.5)';
+                    cx.fillText(
+                        `${S.bands.length} band${S.bands.length !== 1 ? 's' : ''} · ${S.isoMode}`,
+                        p.l + pW / 2,
+                        p.t + 12,
+                    );
+                } else if (S.isoMode === 'spectral') {
+                    cx.fillStyle = 'rgba(251,191,36,.5)';
+                    cx.fillText(
+                        S.noiseProfile
+                            ? `spectral subtraction (α=${S.overSub.toFixed(1)})`
+                            : 'spectral sub — capture noise first',
+                        p.l + pW / 2,
+                        p.t + 12,
+                    );
+                }
             }
 
             let sIC = null,
@@ -2071,31 +3151,40 @@
                 // Band overlay
                 const ny = S.sr / 2,
                     dm = Math.min(S.mf, ny);
-                const by0 = p.t + pH - (Math.min(S.bHi, dm) / dm) * pH,
-                    by1 = p.t + pH - (S.bLo / dm) * pH;
-                cx.fillStyle = 'rgba(34,211,238,.1)';
-                cx.fillRect(
-                    p.l,
-                    Math.max(by0, p.t),
-                    pW,
-                    Math.min(by1, p.t + pH) - Math.max(by0, p.t),
-                );
-                cx.strokeStyle = 'rgba(34,211,238,.4)';
-                cx.lineWidth = 1;
-                cx.setLineDash([4, 3]);
-                if (S.bLo > 0) {
-                    cx.beginPath();
-                    cx.moveTo(p.l, by1);
-                    cx.lineTo(p.l + pW, by1);
-                    cx.stroke();
+                function drawSTFTBand(lo, hi, color) {
+                    const by0 = p.t + pH - (Math.min(hi, dm) / dm) * pH,
+                        by1 = p.t + pH - (lo / dm) * pH;
+                    cx.fillStyle = color + '1a';
+                    cx.fillRect(
+                        p.l,
+                        Math.max(by0, p.t),
+                        pW,
+                        Math.min(by1, p.t + pH) - Math.max(by0, p.t),
+                    );
+                    cx.strokeStyle = color + '66';
+                    cx.lineWidth = 1;
+                    cx.setLineDash([4, 3]);
+                    if (lo > 0) {
+                        cx.beginPath();
+                        cx.moveTo(p.l, by1);
+                        cx.lineTo(p.l + pW, by1);
+                        cx.stroke();
+                    }
+                    if (hi < dm) {
+                        cx.beginPath();
+                        cx.moveTo(p.l, by0);
+                        cx.lineTo(p.l + pW, by0);
+                        cx.stroke();
+                    }
+                    cx.setLineDash([]);
                 }
-                if (S.bHi < dm) {
-                    cx.beginPath();
-                    cx.moveTo(p.l, by0);
-                    cx.lineTo(p.l + pW, by0);
-                    cx.stroke();
+                if (S.isoMode === 'multi' || S.isoMode === 'combined') {
+                    S.bands.forEach((b, idx) =>
+                        drawSTFTBand(b.lo, b.hi, HC[idx % HC.length]),
+                    );
+                } else if (S.isoMode === 'single') {
+                    drawSTFTBand(S.bLo, S.bHi, '#22d3ee');
                 }
-                cx.setLineDash([]);
                 // Playhead
                 if (pf >= 0) {
                     const x = p.l + pf * pW;
@@ -2157,7 +3246,17 @@
                         x = p.l + (i / nb) * pW,
                         bH = nm * pH;
                     const freq = (i * S.sr) / n;
-                    const inBand = freq >= S.bLo && freq <= S.bHi;
+                    let inBand = false;
+                    if (S.isoMode === 'single') {
+                        inBand = freq >= S.bLo && freq <= S.bHi;
+                    } else if (
+                        S.isoMode === 'multi' ||
+                        S.isoMode === 'combined'
+                    ) {
+                        inBand = S.bands.some(
+                            b => freq >= b.lo && freq <= b.hi,
+                        );
+                    }
                     if (inBand) {
                         cx.fillStyle = `rgba(34,211,238,${0.4 + nm * 0.6})`;
                     } else {
@@ -2680,7 +3779,7 @@
                     updP();
                 });
 
-                // Band sliders
+                // Band sliders (single-band mode)
                 $('bandLo').addEventListener('input', e => {
                     S.bLo = +e.target.value;
                     if (S.bLo > S.bHi) {
@@ -2704,6 +3803,495 @@
                     recomputeExtraction();
                     if (!S.playing) rAll();
                     updP();
+                });
+
+                // Rolloff slider
+                $('rolloffS').addEventListener('input', e => {
+                    S.rolloff = +e.target.value;
+                    $('rolloffV').textContent = S.rolloff;
+                    recomputeExtraction();
+                    if (!S.playing) rAll();
+                });
+
+                // Wet/dry slider
+                $('wetDry').addEventListener('input', e => {
+                    S.wetDry = +e.target.value / 100;
+                    S.prevWetDry = S.wetDry;
+                    $('wetDryV').textContent = Math.round(S.wetDry * 100) + '%';
+                });
+
+                // Mode selector
+                document
+                    .querySelectorAll('#modeBtns .bt')
+                    .forEach(b =>
+                        b.addEventListener('click', () =>
+                            switchMode(b.dataset.m),
+                        ),
+                    );
+
+                // Order selector (combined mode)
+                document.querySelectorAll('#orderBtns .bt').forEach(b =>
+                    b.addEventListener('click', () => {
+                        S.combOrder = b.dataset.o;
+                        document
+                            .querySelectorAll('#orderBtns .bt')
+                            .forEach(x => x.classList.toggle('ac', x === b));
+                        recomputeExtraction();
+                        if (!S.playing) rAll();
+                    }),
+                );
+
+                // Spectral subtraction sliders (standalone panel)
+                function setupNoiseSliders(
+                    startId,
+                    endId,
+                    startVId,
+                    endVId,
+                    overSubId,
+                    overSubVId,
+                    specFloorId,
+                    specFloorVId,
+                ) {
+                    const startEl = $(startId),
+                        endEl = $(endId);
+                    if (startEl)
+                        startEl.addEventListener('input', e => {
+                            S.noiseStart = +e.target.value / 1000;
+                            const dur = S.sig ? S.sig.length / S.sr : 1;
+                            $(startVId).textContent =
+                                (S.noiseStart * dur).toFixed(2) + 's';
+                            // sync other panel
+                            if (
+                                startId === 'noiseStartS' &&
+                                $('cNoiseStartS')
+                            ) {
+                                $('cNoiseStartS').value = e.target.value;
+                                $('cNoiseStartV').textContent =
+                                    $(startVId).textContent;
+                            }
+                            if (
+                                startId === 'cNoiseStartS' &&
+                                $('noiseStartS')
+                            ) {
+                                $('noiseStartS').value = e.target.value;
+                                $('noiseStartV').textContent =
+                                    $(startVId).textContent;
+                            }
+                            if (!S.playing) rAll();
+                        });
+                    if (endEl)
+                        endEl.addEventListener('input', e => {
+                            S.noiseEnd = +e.target.value / 1000;
+                            const dur = S.sig ? S.sig.length / S.sr : 1;
+                            $(endVId).textContent =
+                                (S.noiseEnd * dur).toFixed(2) + 's';
+                            if (endId === 'noiseEndS' && $('cNoiseEndS')) {
+                                $('cNoiseEndS').value = e.target.value;
+                                $('cNoiseEndV').textContent =
+                                    $(endVId).textContent;
+                            }
+                            if (endId === 'cNoiseEndS' && $('noiseEndS')) {
+                                $('noiseEndS').value = e.target.value;
+                                $('noiseEndV').textContent =
+                                    $(endVId).textContent;
+                            }
+                            if (!S.playing) rAll();
+                        });
+                    if ($(overSubId))
+                        $(overSubId).addEventListener('input', e => {
+                            S.overSub = +e.target.value / 100;
+                            $(overSubVId).textContent = S.overSub.toFixed(1);
+                            // sync
+                            if (overSubId === 'overSubS' && $('cOverSubS')) {
+                                $('cOverSubS').value = e.target.value;
+                                $('cOverSubV').textContent =
+                                    S.overSub.toFixed(1);
+                            }
+                            if (overSubId === 'cOverSubS' && $('overSubS')) {
+                                $('overSubS').value = e.target.value;
+                                $('overSubV').textContent =
+                                    S.overSub.toFixed(1);
+                            }
+                            recomputeExtraction();
+                            if (!S.playing) rAll();
+                        });
+                    if ($(specFloorId))
+                        $(specFloorId).addEventListener('input', e => {
+                            S.specFloor = +e.target.value / 1000;
+                            $(specFloorVId).textContent =
+                                S.specFloor.toFixed(3);
+                            if (
+                                specFloorId === 'specFloorS' &&
+                                $('cSpecFloorS')
+                            ) {
+                                $('cSpecFloorS').value = e.target.value;
+                                $('cSpecFloorV').textContent =
+                                    S.specFloor.toFixed(3);
+                            }
+                            if (
+                                specFloorId === 'cSpecFloorS' &&
+                                $('specFloorS')
+                            ) {
+                                $('specFloorS').value = e.target.value;
+                                $('specFloorV').textContent =
+                                    S.specFloor.toFixed(3);
+                            }
+                            recomputeExtraction();
+                            if (!S.playing) rAll();
+                        });
+                }
+                setupNoiseSliders(
+                    'noiseStartS',
+                    'noiseEndS',
+                    'noiseStartV',
+                    'noiseEndV',
+                    'overSubS',
+                    'overSubV',
+                    'specFloorS',
+                    'specFloorV',
+                );
+                setupNoiseSliders(
+                    'cNoiseStartS',
+                    'cNoiseEndS',
+                    'cNoiseStartV',
+                    'cNoiseEndV',
+                    'cOverSubS',
+                    'cOverSubV',
+                    'cSpecFloorS',
+                    'cSpecFloorV',
+                );
+
+                // Spectrogram click-drag for band selection
+                const mcEl = $('mC');
+                let dragState = null;
+                mcEl.addEventListener('mousedown', e => {
+                    if (S.tab !== 'stft') return;
+                    const rect = mcEl.getBoundingClientRect();
+                    const stftP = { l: 42, r: 8, t: 8, b: 26 };
+                    const stftPH = rect.height - stftP.t - stftP.b;
+                    const y = e.clientY - rect.top;
+                    const stftDm = Math.min(S.mf, S.sr / 2);
+                    const freq = ((stftP.t + stftPH - y) / stftPH) * stftDm;
+                    dragState = {
+                        startFreq: Math.max(0, freq),
+                        shiftKey: e.shiftKey,
+                        startY: y,
+                    };
+                    $('mCov').classList.add('active');
+                    $('mCW').classList.add('crosshair');
+                });
+                document.addEventListener('mousemove', e => {
+                    if (!dragState) return;
+                    const ov = $('mCov');
+                    const rect = mcEl.getBoundingClientRect();
+                    const dp = devicePixelRatio || 1;
+                    ov.width = rect.width * dp;
+                    ov.height = rect.height * dp;
+                    ov.style.width = rect.width + 'px';
+                    ov.style.height = rect.height + 'px';
+                    const ctx = ov.getContext('2d');
+                    ctx.scale(dp, dp);
+                    ctx.clearRect(0, 0, rect.width, rect.height);
+                    const stftP = { l: 42, r: 8, t: 8, b: 26 };
+                    const stftPW = rect.width - stftP.l - stftP.r;
+                    const stftPH = rect.height - stftP.t - stftP.b;
+                    const y = e.clientY - rect.top;
+                    const y0 = Math.min(dragState.startY, y),
+                        y1 = Math.max(dragState.startY, y);
+                    ctx.fillStyle = 'rgba(34,211,238,.15)';
+                    ctx.fillRect(
+                        stftP.l,
+                        Math.max(y0, stftP.t),
+                        stftPW,
+                        Math.min(y1, stftP.t + stftPH) - Math.max(y0, stftP.t),
+                    );
+                    ctx.strokeStyle = 'rgba(34,211,238,.6)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(
+                        stftP.l,
+                        Math.max(y0, stftP.t),
+                        stftPW,
+                        Math.min(y1, stftP.t + stftPH) - Math.max(y0, stftP.t),
+                    );
+                });
+                document.addEventListener('mouseup', e => {
+                    if (!dragState) return;
+                    $('mCov').classList.remove('active');
+                    $('mCW').classList.remove('crosshair');
+                    const ov = $('mCov');
+                    const ctx = ov.getContext('2d');
+                    ctx.clearRect(0, 0, ov.width, ov.height);
+                    const rect = mcEl.getBoundingClientRect();
+                    const stftP = { l: 42, r: 8, t: 8, b: 26 };
+                    const stftPH = rect.height - stftP.t - stftP.b;
+                    const y = e.clientY - rect.top;
+                    const stftDm = Math.min(S.mf, S.sr / 2);
+                    const endFreq = Math.max(
+                        0,
+                        ((stftP.t + stftPH - y) / stftPH) * stftDm,
+                    );
+                    const lo = Math.max(
+                        0,
+                        Math.min(dragState.startFreq, endFreq),
+                    );
+                    const hi = Math.min(
+                        stftDm,
+                        Math.max(dragState.startFreq, endFreq),
+                    );
+                    if (Math.abs(hi - lo) < 20) {
+                        dragState = null;
+                        return;
+                    }
+                    if (S.isoMode === 'single') {
+                        S.bLo = Math.round(lo);
+                        S.bHi = Math.round(hi);
+                        $('bandLo').value = S.bLo;
+                        $('bandLoV').textContent = S.bLo + ' Hz';
+                        $('bandHi').value = S.bHi;
+                        $('bandHiV').textContent = S.bHi + ' Hz';
+                    } else if (
+                        S.isoMode === 'multi' ||
+                        S.isoMode === 'combined'
+                    ) {
+                        if (dragState.shiftKey) {
+                            addBand(lo, hi);
+                        } else {
+                            S.bands = [
+                                {
+                                    lo: Math.round(lo),
+                                    hi: Math.round(hi),
+                                    rolloff: 4,
+                                },
+                            ];
+                            renderBands();
+                        }
+                    }
+                    dragState = null;
+                    recomputeExtraction();
+                    if (!S.playing) rAll();
+                    updP();
+                });
+
+                // Waveform region selection (drag to select)
+                const wCEl = $('wC');
+                let wDrag = null;
+                $('wCW').addEventListener('mousedown', e => {
+                    if (e.target.tagName === 'INPUT') return;
+                    const rect = wCEl.getBoundingClientRect();
+                    const frac = Math.max(
+                        0,
+                        Math.min(1, (e.clientX - rect.left) / rect.width),
+                    );
+                    wDrag = { startFrac: frac };
+                    e.preventDefault();
+                });
+                document.addEventListener('mousemove', e => {
+                    if (!wDrag) return;
+                    const rect = wCEl.getBoundingClientRect();
+                    const frac = Math.max(
+                        0,
+                        Math.min(1, (e.clientX - rect.left) / rect.width),
+                    );
+                    const lo = Math.min(wDrag.startFrac, frac);
+                    const hi = Math.max(wDrag.startFrac, frac);
+                    if (hi - lo > 0.005) {
+                        S.selStart = lo;
+                        S.selEnd = hi;
+                        S.hasSelection = true;
+                        if (!S.playing) rAll();
+                    }
+                });
+                document.addEventListener('mouseup', e => {
+                    if (!wDrag) return;
+                    const rect = wCEl.getBoundingClientRect();
+                    const frac = Math.max(
+                        0,
+                        Math.min(1, (e.clientX - rect.left) / rect.width),
+                    );
+                    const lo = Math.min(wDrag.startFrac, frac);
+                    const hi = Math.max(wDrag.startFrac, frac);
+                    if (hi - lo > 0.005) {
+                        S.selStart = lo;
+                        S.selEnd = hi;
+                        S.hasSelection = true;
+                    } else {
+                        // Click without drag = seek to position
+                        seekTo(frac);
+                    }
+                    wDrag = null;
+                    if (!S.playing) rAll();
+                });
+                // Double-click waveform to clear selection
+                $('wCW').addEventListener('dblclick', e => {
+                    if (e.target.tagName === 'INPUT') return;
+                    S.hasSelection = false;
+                    S.selStart = 0;
+                    S.selEnd = 1;
+                    if (!S.playing) rAll();
+                    L('wf');
+                });
+
+                // Editable number values
+                makeEditable($('bandLoV'), {
+                    min: 0,
+                    max: S.sr / 2,
+                    step: 10,
+                    suffix: ' Hz',
+                    onChange: v => {
+                        S.bLo = v;
+                        $('bandLo').value = v;
+                        if (S.bLo > S.bHi) {
+                            S.bHi = S.bLo;
+                            $('bandHi').value = S.bHi;
+                            $('bandHiV').textContent = S.bHi + ' Hz';
+                        }
+                        recomputeExtraction();
+                        if (!S.playing) rAll();
+                        updP();
+                    },
+                });
+                makeEditable($('bandHiV'), {
+                    min: 0,
+                    max: S.sr / 2,
+                    step: 10,
+                    suffix: ' Hz',
+                    onChange: v => {
+                        S.bHi = v;
+                        $('bandHi').value = v;
+                        if (S.bHi < S.bLo) {
+                            S.bLo = S.bHi;
+                            $('bandLo').value = S.bLo;
+                            $('bandLoV').textContent = S.bLo + ' Hz';
+                        }
+                        recomputeExtraction();
+                        if (!S.playing) rAll();
+                        updP();
+                    },
+                });
+                makeEditable($('rolloffV'), {
+                    min: 1,
+                    max: 12,
+                    step: 1,
+                    suffix: '',
+                    onChange: v => {
+                        S.rolloff = v;
+                        $('rolloffS').value = v;
+                        recomputeExtraction();
+                        if (!S.playing) rAll();
+                    },
+                });
+                makeEditable($('mfV'), {
+                    min: 500,
+                    max: 22050,
+                    step: 250,
+                    suffix: ' Hz',
+                    onChange: v => {
+                        S.mf = v;
+                        $('mfS').value = v;
+                        sCK = '';
+                        if (!S.playing) rAll();
+                    },
+                });
+                makeEditable($('drV'), {
+                    min: 20,
+                    max: 120,
+                    step: 5,
+                    suffix: ' dB',
+                    onChange: v => {
+                        S.dynR = v;
+                        $('drS').value = v;
+                        sCK = '';
+                        if (!S.playing) rAll();
+                    },
+                });
+                makeEditable($('olV'), {
+                    min: 0,
+                    max: 90,
+                    step: 5,
+                    suffix: '%',
+                    onChange: v => {
+                        S.olP = v;
+                        $('olS').value = v;
+                        sCK = '';
+                        if (!S.playing) rAll();
+                        updP();
+                    },
+                });
+                makeEditable($('fsWV'), {
+                    min: 64,
+                    max: 8192,
+                    step: 64,
+                    suffix: '',
+                    onChange: v => {
+                        S.fsW = v;
+                        $('fsWS').value = v;
+                        $('fsHS').max = Math.floor(v / 2);
+                        if (S.fsH > Math.floor(v / 2)) {
+                            S.fsH = Math.floor(v / 2);
+                            $('fsHS').value = S.fsH;
+                            $('fsHV').textContent = S.fsH;
+                        }
+                        recomputeExtraction();
+                        if (!S.playing) rAll();
+                        updP();
+                    },
+                });
+                makeEditable($('fsHV'), {
+                    min: 1,
+                    max: 64,
+                    step: 1,
+                    suffix: '',
+                    onChange: v => {
+                        S.fsH = v;
+                        $('fsHS').value = v;
+                        recomputeExtraction();
+                        if (!S.playing) rAll();
+                        updP();
+                    },
+                });
+                makeEditable($('wetDryV'), {
+                    min: 0,
+                    max: 100,
+                    step: 1,
+                    suffix: '%',
+                    onChange: v => {
+                        S.wetDry = v / 100;
+                        S.prevWetDry = S.wetDry;
+                        $('wetDry').value = v;
+                    },
+                });
+                makeEditable($('overSubV'), {
+                    min: 0.5,
+                    max: 4.0,
+                    step: 0.1,
+                    suffix: '',
+                    onChange: v => {
+                        S.overSub = v;
+                        $('overSubS').value = Math.round(v * 100);
+                        if ($('cOverSubS')) {
+                            $('cOverSubS').value = Math.round(v * 100);
+                            $('cOverSubV').textContent = v.toFixed(1);
+                        }
+                        recomputeExtraction();
+                        if (!S.playing) rAll();
+                    },
+                });
+                makeEditable($('specFloorV'), {
+                    min: 0.001,
+                    max: 0.1,
+                    step: 0.001,
+                    suffix: '',
+                    fmt: v => v.toFixed(3),
+                    onChange: v => {
+                        S.specFloor = v;
+                        $('specFloorS').value = Math.round(v * 1000);
+                        if ($('cSpecFloorS')) {
+                            $('cSpecFloorS').value = Math.round(v * 1000);
+                            $('cSpecFloorV').textContent = v.toFixed(3);
+                        }
+                        recomputeExtraction();
+                        if (!S.playing) rAll();
+                    },
                 });
 
                 // FS sliders
@@ -2754,7 +4342,11 @@
                 });
 
                 document.addEventListener('keydown', e => {
-                    if (e.target.tagName === 'INPUT') return;
+                    if (
+                        e.target.tagName === 'INPUT' ||
+                        e.target.classList.contains('inline-edit')
+                    )
+                        return;
                     if (e.code === 'Space') {
                         e.preventDefault();
                         togPlay();
@@ -2769,8 +4361,15 @@
                 });
             }
 
+            // Populate educational panels
+            if ($('eduSingle')) $('eduSingle').innerHTML = EDU.single;
+            if ($('eduMulti')) $('eduMulti').innerHTML = EDU.multi;
+            if ($('eduSpectral')) $('eduSpectral').innerHTML = EDU.spectral;
+            if ($('eduCombined')) $('eduCombined').innerHTML = EDU.combined;
+
             ldP('tones');
             init();
+            renderBands();
         </script>
     </body>
 </html>
