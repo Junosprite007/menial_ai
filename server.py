@@ -3,7 +3,7 @@ Flask server that bridges the HTML Fourier Explorer with the Python Isolator.
 
 Usage:
     python server.py
-    Then open http://localhost:5000 in your browser.
+    Then open http://localhost:5050 in your browser.
 
 Authors: Joshua Kirby & Alan Nur (with Claude Opus 4.6 LLM assistance)
 Course:  TECHIN 513A — Managing Data And Signal Processing
@@ -16,7 +16,11 @@ import threading
 from flask import Flask, request, jsonify, send_from_directory
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-app = Flask(__name__, static_folder=PROJECT_DIR)
+STATIC_DIR = os.path.join(PROJECT_DIR, "static")
+ALLOWED_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".m4a"}
+MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
+
+app = Flask(__name__, static_folder=STATIC_DIR, static_url_path="/static")
 
 
 @app.route("/")
@@ -30,8 +34,19 @@ def analyze():
     if not audio_file:
         return jsonify(error="No audio file provided"), 400
 
+    # Validate file extension
+    suffix = os.path.splitext(audio_file.filename or "audio.wav")[1].lower() or ".wav"
+    if suffix not in ALLOWED_EXTENSIONS:
+        return jsonify(error=f"Unsupported file type: {suffix}"), 400
+
+    # Validate file size
+    audio_file.seek(0, os.SEEK_END)
+    size = audio_file.tell()
+    audio_file.seek(0)
+    if size > MAX_UPLOAD_BYTES:
+        return jsonify(error="File too large (max 50 MB)"), 400
+
     # Save uploaded audio to a temp file
-    suffix = os.path.splitext(audio_file.filename or "audio.wav")[1] or ".wav"
     tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False, dir=PROJECT_DIR)
     audio_file.save(tmp)
     tmp.close()
@@ -52,12 +67,14 @@ def analyze():
             "--window", window,
             "--maxfreq", max_freq,
         ]
-        subprocess.run(cmd)
-        # Clean up temp file after the isolator window is closed
         try:
-            os.unlink(tmp.name)
-        except OSError:
-            pass
+            subprocess.run(cmd)
+        finally:
+            # Clean up temp file even if isolator crashes
+            try:
+                os.unlink(tmp.name)
+            except OSError:
+                pass
 
     threading.Thread(target=run_isolator, daemon=True).start()
 
