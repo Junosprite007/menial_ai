@@ -30,3 +30,7 @@ venv/
 env/
 *.wav
 *.mp3
+
+# Dataset and model files
+data/
+models/*.pt

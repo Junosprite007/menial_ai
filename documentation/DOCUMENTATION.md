@@ -12,6 +12,7 @@ Menial AI is an interactive audio signal processing and feature isolation toolki
 
 ### Core Capabilities
 
+- **Real-time sound classification** using a custom-trained CNN on mel spectrograms
 - **Educational visualization** of FFT, STFT, and Fourier Series concepts
 - **Interactive audio isolation** using multiple decomposition methods
 - **Real-time spectrogram visualization** with clickable component selection
@@ -24,13 +25,27 @@ Menial AI is an interactive audio signal processing and feature isolation toolki
 
 ```
 menial_ai/
+├── classifier.py                  # Real-time microphone sound classifier
+├── record_samples.py              # Helper to record custom training clips
 ├── fourier_explorer.html          # Web UI (HTML markup only, ~756 lines)
 ├── fourier_fundamentals.py        # Educational FFT/STFT visualization tool
 ├── isolator.py                    # Interactive audio decomposition GUI
 ├── server.py                      # Flask web server
-├── requirements.txt               # Pinned Python dependencies
+├── requirements.txt               # Python dependencies
 ├── .gitignore                     # Git ignore rules
 ├── README.md
+│
+├── models/                        # Trained model weights + config
+│   ├── model.pt                   # CNN state dict
+│   ├── labels.json                # Class index → name mapping
+│   └── config.json                # Mel spectrogram parameters
+│
+├── training/
+│   └── train_classifier.ipynb     # Google Colab training notebook
+│
+├── data/                          # Datasets (gitignored)
+│   ├── ESC-50/                    # ESC-50 dataset (downloaded by notebook)
+│   └── custom/                    # Self-recorded clips by class folder
 │
 ├── static/
 │   ├── css/
@@ -57,7 +72,79 @@ menial_ai/
 
 ## Components
 
-### 1. Fourier Fundamentals (`fourier_fundamentals.py`)
+### 1. Real-Time Sound Classifier (`classifier.py`)
+
+Listens to the computer microphone and classifies household sounds using a trained CNN on mel spectrograms.
+
+**Architecture:**
+```
+Microphone → sounddevice.InputStream → 5-second ring buffer
+                                            ↓ (every 1 second)
+                                       Mel Spectrogram
+                                       (n_fft=2048, hop=512, 128 mels)
+                                            ↓
+                                       HouseholdSoundCNN
+                                       (4-block CNN, ~150K params)
+                                            ↓
+                                       softmax → top-K predictions → terminal
+```
+
+**Model — `HouseholdSoundCNN`:**
+
+| Layer | Output Shape |
+|-------|-------------|
+| Conv2d(1→16, 3x3) + BN + ReLU + MaxPool | (16, 64, 215) |
+| Conv2d(16→32, 3x3) + BN + ReLU + MaxPool | (32, 32, 107) |
+| Conv2d(32→64, 3x3) + BN + ReLU + MaxPool | (64, 16, 53) |
+| Conv2d(64→128, 3x3) + BN + ReLU + MaxPool | (128, 8, 26) |
+| AdaptiveAvgPool2d(1) | (128, 1, 1) |
+| Flatten + Dropout(0.3) + Linear(128→64) + ReLU | (64,) |
+| Dropout(0.3) + Linear(64→num_classes) | (num_classes,) |
+
+The model definition is duplicated in both `classifier.py` and `training/train_classifier.ipynb` and must stay in sync.
+
+**Required files in `models/`:**
+
+| File | Contents |
+|------|----------|
+| `model.pt` | PyTorch state dict (trained weights) |
+| `labels.json` | `{"num_classes": N, "labels": ["class1", ...]}` |
+| `config.json` | Mel spectrogram parameters (must match training) |
+
+### 2. Training Pipeline (`training/train_classifier.ipynb`)
+
+Google Colab notebook that trains the CNN classifier.
+
+**Dataset:** ESC-50 (2,000 five-second clips, 50 environmental sound classes) plus optional self-recorded clips in `data/custom/`. Custom clips are assigned to training folds automatically.
+
+**Preprocessing pipeline:**
+```
+Audio (any format) → Resample to 44100 Hz → Mono → Pad/trim to 5s
+    → MelSpectrogram(n_fft=2048, hop=512, n_mels=128, f_max=22050)
+    → AmplitudeToDB(top_db=80)
+    → Output: (1, 128, 431) tensor
+```
+
+**Data augmentation (training only):**
+- Time shift (random roll up to ±1 second)
+- Additive Gaussian noise (σ=0.005)
+- SpecAugment: frequency masking (15 bins) + time masking (35 frames)
+
+**Training config:**
+- Optimizer: Adam (lr=1e-3) with ReduceLROnPlateau (factor=0.5, patience=5)
+- Loss: CrossEntropyLoss
+- Split: ESC-50 folds 1-3 = train, fold 4 = validation, fold 5 = test
+- Epochs: 80 (with early stopping via best-model checkpoint)
+
+**Outputs:** `model.pt`, `labels.json`, `config.json` → download to `models/`
+
+### 3. Sample Recorder (`record_samples.py`)
+
+Records 5-second microphone clips for custom training categories not covered by ESC-50.
+
+Saves clips as 16-bit WAV at 44100 Hz to `data/custom/<class_name>/<class_name>_001.wav` with auto-incrementing filenames.
+
+### 4. Fourier Fundamentals (`fourier_fundamentals.py`)
 
 A standalone educational script (~650 lines) that generates five progressive figures teaching Fourier analysis concepts:
 
@@ -191,9 +278,11 @@ All application state lives in a single `S` object defined in `state.js`. Key pr
 | numpy | 2.4.2 | Numerical computing, array operations |
 | scipy | 1.17.0 | Signal processing (STFT, ISTFT, morphological ops) |
 | flask | 3.1.3 | Web server framework |
-| sounddevice | 0.5.5 | Audio playback |
+| sounddevice | 0.5.5 | Audio playback and microphone input |
+| torch | ≥2.0 | CNN model definition and inference |
+| torchaudio | ≥2.0 | Mel spectrogram transforms, audio loading |
 
-**Implicit:** Python 3.x, ffmpeg (for audio format conversion in isolator.py)
+**Implicit:** Python 3.11–3.12 (for PyTorch compatibility), ffmpeg (for audio format conversion in isolator.py)
 
 ### Setup
 
@@ -220,6 +309,9 @@ pip install -r requirements.txt
 | Window Functions | Rectangular, Hann, Hamming, Blackman | `dsp.js`, `fourier_fundamentals.py` |
 | Phase Reconstruction | Magnitude masking with original phase preservation | `isolator.py` |
 | Fourier Series | `compFS()` / `reconstructFS()` — harmonic decomposition | `dsp.js` |
+| Mel Spectrogram | STFT → mel filterbank → log scaling for CNN input | `classifier.py`, `train_classifier.ipynb` |
+| CNN Classification | 4-block ConvNet with global average pooling | `classifier.py`, `train_classifier.ipynb` |
+| SpecAugment | Frequency/time masking for training augmentation | `train_classifier.ipynb` |
 
 ---
 
