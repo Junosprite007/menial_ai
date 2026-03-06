@@ -27,6 +27,7 @@ wheels/
 # Virtual Environments
 venv/
 .venv/
+.venv*/
 env/
 *.wav
 *.mp3

@@ -10,7 +10,8 @@ An audio signal processing toolkit for analyzing, isolating, and classifying hou
 
 ```bash
 cd menial_ai
-python3 -m venv .venv
+# python3 -m venv .venv
+python3.12 -m venv .venv312
 source .venv/bin/activate
 pip3 install -r requirements.txt
 ```
