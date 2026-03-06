@@ -32,12 +32,12 @@ import sounddevice as sd
 # ── Model architecture (must match training) ─────────────────────────────────
 
 class HouseholdSoundCNN(nn.Module):
-    """4-block CNN for classifying mel spectrograms."""
+    """4-block CNN for classifying audio feature spectrograms."""
 
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, n_channels=1):
         super().__init__()
         self.features = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=3, padding=1),
+            nn.Conv2d(n_channels, 16, kernel_size=3, padding=1),
             nn.BatchNorm2d(16),
             nn.ReLU(),
             nn.MaxPool2d(2),
@@ -90,7 +90,8 @@ def load_model(model_dir):
     labels = label_data["labels"]
     num_classes = label_data["num_classes"]
 
-    model = HouseholdSoundCNN(num_classes)
+    n_channels = config.get("n_channels", 1)
+    model = HouseholdSoundCNN(num_classes, n_channels=n_channels)
     model.load_state_dict(torch.load(model_path, map_location="cpu", weights_only=True))
     model.eval()
 

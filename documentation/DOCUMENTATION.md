@@ -12,7 +12,8 @@ Menial AI is an interactive audio signal processing and feature isolation toolki
 
 ### Core Capabilities
 
-- **Real-time sound classification** using a custom-trained CNN on mel spectrograms
+- **Real-time sound monitoring** with contextual voice alerts using a custom-trained CNN
+- **Multi-feature classification** using MFCC, STFT, ZCR, and NMF signal processing techniques
 - **Educational visualization** of FFT, STFT, and Fourier Series concepts
 - **Interactive audio isolation** using multiple decomposition methods
 - **Real-time spectrogram visualization** with clickable component selection
@@ -25,7 +26,8 @@ Menial AI is an interactive audio signal processing and feature isolation toolki
 
 ```
 menial_ai/
-├── classifier.py                  # Real-time microphone sound classifier
+├── monitor.py                     # Full monitoring system (clean → classify → track → speak)
+├── classifier.py                  # Simple real-time classifier
 ├── record_samples.py              # Helper to record custom training clips
 ├── fourier_explorer.html          # Web UI (HTML markup only, ~756 lines)
 ├── fourier_fundamentals.py        # Educational FFT/STFT visualization tool
@@ -72,9 +74,46 @@ menial_ai/
 
 ## Components
 
-### 1. Real-Time Sound Classifier (`classifier.py`)
+### 1. Household Sound Monitor (`monitor.py`)
 
-Listens to the computer microphone and classifies household sounds using a trained CNN on mel spectrograms.
+Full monitoring system implementing the project proposal's pipeline: Microphone → Signal Cleaning → AI Model → Identify Sound → Robot Aware Context & Speaks.
+
+**Architecture:**
+```
+HouseholdMonitor (orchestrator)
+├── SignalCleaner      — NMF-based noise reduction (4 components, drop lowest-energy)
+├── FeatureExtractor   — 4-channel: Mel spectrogram + MFCC + ZCR + STFT magnitude
+├── SoundTracker       — State machine: IDLE → DETECTED → ACTIVE → FADING → IDLE
+├── ContextEngine      — Rule engine mapping (sound, event, duration) → response text
+├── Speaker            — macOS `say` / pyttsx3 TTS with 30-second debounce
+└── Display            — ANSI terminal dashboard with colors, durations, alert history
+```
+
+**Pipeline per cycle (~60-130ms):**
+```
+1. Copy 5-second ring buffer
+2. SignalCleaner.clean()     — STFT → NMF(4 components) → drop noise → iSTFT
+3. FeatureExtractor.extract() — 4-channel tensor (4, 128, T)
+4. CNN forward pass           — top-5 predictions with softmax
+5. SoundTracker.update()      — state transitions, duration milestones
+6. ContextEngine.evaluate()   — generate response text
+7. Speaker.speak()            — non-blocking TTS
+8. Display.render()           — terminal dashboard
+```
+
+**Context rules (examples):**
+
+| Sound | Trigger | Response |
+|-------|---------|----------|
+| chopping | started | "I hear chopping. Do you need the next recipe step?" |
+| water | 2 min | "The water has been running for 2 minutes. Did you forget to turn it off?" |
+| boiling | started | "I hear boiling water. Would you like me to set a timer?" |
+| boiling | 10 min | "Warning: boiling for 10 minutes. You might want to check the stove." |
+| smoke detector | started | "ALERT: Smoke detector going off! Please check immediately." |
+
+### 2. Simple Classifier (`classifier.py`)
+
+Lightweight version — classifies household sounds and prints predictions without tracking or alerts.
 
 **Architecture:**
 ```
@@ -111,40 +150,47 @@ The model definition is duplicated in both `classifier.py` and `training/train_c
 | `labels.json` | `{"num_classes": N, "labels": ["class1", ...]}` |
 | `config.json` | Mel spectrogram parameters (must match training) |
 
-### 2. Training Pipeline (`training/train_classifier.ipynb`)
+### 3. Training Pipeline (`training/train_classifier.ipynb`)
 
 Google Colab notebook that trains the CNN classifier.
 
 **Dataset:** ESC-50 (2,000 five-second clips, 50 environmental sound classes) plus optional self-recorded clips in `data/custom/`. Custom clips are assigned to training folds automatically.
 
-**Preprocessing pipeline:**
+**Feature extraction (4-channel input):**
 ```
 Audio (any format) → Resample to 44100 Hz → Mono → Pad/trim to 5s
-    → MelSpectrogram(n_fft=2048, hop=512, n_mels=128, f_max=22050)
-    → AmplitudeToDB(top_db=80)
-    → Output: (1, 128, 431) tensor
+    → Channel 0: MelSpectrogram → AmplitudeToDB           (128, T)
+    → Channel 1: MFCC (40 coefficients) → resize to 128   (128, T)
+    → Channel 2: Zero-Crossing Rate → broadcast            (128, T)
+    → Channel 3: STFT magnitude → resize to 128            (128, T)
+    → Stack → Output: (4, 128, T) tensor
 ```
 
 **Data augmentation (training only):**
 - Time shift (random roll up to ±1 second)
-- Additive Gaussian noise (σ=0.005)
-- SpecAugment: frequency masking (15 bins) + time masking (35 frames)
+- Variable Gaussian noise (σ=0.001–0.02)
+- Background noise mixing (ambient ESC-50 clips at 5-20% volume)
+- Volume variation (gain 0.5x–1.5x)
+- NMF denoising (applied to 20% of clips)
+- SpecAugment: frequency masking (25 bins) + time masking (50 frames)
 
 **Training config:**
 - Optimizer: Adam (lr=1e-3) with ReduceLROnPlateau (factor=0.5, patience=5)
 - Loss: CrossEntropyLoss
 - Split: ESC-50 folds 1-3 = train, fold 4 = validation, fold 5 = test
-- Epochs: 80 (with early stopping via best-model checkpoint)
+- Epochs: 100 (with early stopping via best-model checkpoint)
 
-**Outputs:** `model.pt`, `labels.json`, `config.json` → download to `models/`
+**AudioSet comparison:** YAMNet (trained on AudioSet's 2M+ clips) is loaded via TensorFlow Hub and compared against the custom CNN on test samples.
 
-### 3. Sample Recorder (`record_samples.py`)
+**Outputs:** `model.pt`, `labels.json`, `config.json` (with `n_channels: 4`) → download to `models/`
+
+### 4. Sample Recorder (`record_samples.py`)
 
 Records 5-second microphone clips for custom training categories not covered by ESC-50.
 
 Saves clips as 16-bit WAV at 44100 Hz to `data/custom/<class_name>/<class_name>_001.wav` with auto-incrementing filenames.
 
-### 4. Fourier Fundamentals (`fourier_fundamentals.py`)
+### 5. Fourier Fundamentals (`fourier_fundamentals.py`)
 
 A standalone educational script (~650 lines) that generates five progressive figures teaching Fourier analysis concepts:
 
@@ -161,7 +207,7 @@ python fourier_fundamentals.py <path_to_wav_file>
 
 Handles multiple audio formats (mono/stereo conversion, various bit depths). Falls back to a synthetic demo signal if no file is provided.
 
-### 2. Interactive Isolator (`isolator.py`)
+### 6. Interactive Isolator (`isolator.py`)
 
 A matplotlib-based GUI (~877 lines) implementing three audio decomposition algorithms:
 
@@ -186,7 +232,7 @@ Mask Creation → Audio Reconstruction (Magnitude × Mask + Phase) →
 Inverse STFT → Output Audio
 ```
 
-### 3. Web Interface (`fourier_explorer.html` + `server.py`)
+### 7. Web Interface (`fourier_explorer.html` + `server.py`)
 
 A web-based audio analysis tool with a Flask backend.
 

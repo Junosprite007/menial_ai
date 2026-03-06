@@ -21,11 +21,31 @@ pip3 install -r requirements.txt
 
 ## Tools
 
-### 1. Real-Time Sound Classifier (`classifier.py`)
+### 1. Household Sound Monitor (`monitor.py`)
 
-Listens to the microphone and identifies household sounds in real time using a trained CNN model.
+Full monitoring system that listens to the microphone, identifies household sounds, tracks how long each sound persists, and speaks contextual alerts when sounds become concerning.
 
 **Prerequisites:** A trained model in `models/` (see [Training a Model](#training-a-model) below).
+
+```bash
+python monitor.py
+```
+
+Options:
+```
+--model-dir PATH      Model directory (default: models/)
+--sensitivity FLOAT   Detection confidence threshold, 0.0-1.0 (default: 0.4)
+--interval SECS       Seconds between predictions (default: 1.0)
+--no-speak            Disable text-to-speech output
+```
+
+**Pipeline:** Microphone → NMF Signal Cleaning → Feature Extraction (Mel + MFCC + ZCR + STFT) → CNN Classification → Sound Tracking → Context Engine → Text-to-Speech
+
+The monitor displays a live terminal dashboard showing detected sounds, active durations, and recent alerts. When it detects relevant sounds, it speaks helpful responses — for example, *"I hear chopping. Do you need the next recipe step?"* or *"The water has been running for 5 minutes!"*
+
+### 2. Simple Classifier (`classifier.py`)
+
+Lightweight version — just prints top predictions without tracking or alerts.
 
 ```bash
 python classifier.py
@@ -38,11 +58,9 @@ Options:
 --interval SECS    Seconds between predictions (default: 1.0)
 ```
 
-The classifier maintains a 5-second rolling audio buffer and classifies every second, printing the top predictions to the terminal. Press `Ctrl+C` to stop.
-
 ---
 
-### 2. Web Interface (`server.py`)
+### 3. Web Interface (`server.py`)
 
 Interactive browser-based audio analysis with FFT/STFT visualization, frequency band isolation, and spectral subtraction.
 
@@ -61,7 +79,7 @@ Open **http://localhost:5050** in your browser. You can:
 
 ---
 
-### 3. Fourier Fundamentals (`fourier_fundamentals.py`)
+### 4. Fourier Fundamentals (`fourier_fundamentals.py`)
 
 Generates five educational visualizations explaining FFT and STFT concepts.
 
@@ -73,7 +91,7 @@ Omit the file path to use a built-in synthetic demo signal. Outputs five PNG fig
 
 ---
 
-### 4. Sound Event Isolator (`isolator.py`)
+### 5. Sound Event Isolator (`isolator.py`)
 
 Interactive GUI for decomposing audio into individual sound events using Watershed, NMF, or CCA algorithms.
 
@@ -111,11 +129,14 @@ Press Enter to start each recording. Clips are saved to `data/custom/<class_name
 
 1. Open `training/train_classifier.ipynb` in Google Colab (or use the VS Code Colab extension)
 2. If you recorded custom clips, upload the `data/custom/` folder to the Colab environment
-3. Run all cells — training takes ~30-60 minutes on a T4 GPU
+3. Run all cells — training takes ~45-90 minutes on a T4 GPU
 4. The notebook will:
    - Download the ESC-50 dataset (2,000 clips across 50 sound classes)
    - Merge any custom clips as additional classes
-   - Train a 4-block CNN on mel spectrograms
+   - Extract 4-channel features per clip: Mel spectrogram, MFCC, ZCR, and STFT magnitude
+   - Apply NMF-based signal cleaning as augmentation
+   - Train a 4-block CNN with stronger noise augmentation and SpecAugment
+   - Compare results with YAMNet (trained on Google's AudioSet)
    - Evaluate accuracy and generate a confusion matrix
    - Export `model.pt`, `labels.json`, and `config.json`
 
@@ -130,7 +151,7 @@ models/
 └── config.json    # Mel spectrogram parameters
 ```
 
-Then run: `python classifier.py`
+Then run: `python monitor.py`
 
 ---
 
@@ -138,7 +159,8 @@ Then run: `python classifier.py`
 
 ```
 menial_ai/
-├── classifier.py                 # Real-time sound classifier
+├── monitor.py                    # Full monitoring system (NMF clean → CNN → tracking → TTS)
+├── classifier.py                 # Simple real-time classifier
 ├── record_samples.py             # Custom training clip recorder
 ├── fourier_fundamentals.py       # Educational FFT/STFT visualizer
 ├── isolator.py                   # Interactive audio decomposition GUI
