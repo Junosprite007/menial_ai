@@ -1,0 +1,7 @@
+{
+  "num_classes": 2,
+  "labels": [
+    "airplane",
+    "breathing"
+  ]
+}

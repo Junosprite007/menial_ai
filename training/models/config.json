@@ -1,0 +1,10 @@
+{
+  "sample_rate": 44100,
+  "duration": 5,
+  "n_fft": 2048,
+  "hop_length": 512,
+  "n_mels": 128,
+  "f_max": 22050,
+  "top_db": 80,
+  "n_channels": 4
+}
