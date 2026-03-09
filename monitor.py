@@ -128,6 +128,11 @@ class FeatureExtractor:
         self.n_samples = sr * config["duration"]
         self.n_channels = config.get("n_channels", 1)
 
+        # Load normalization statistics (CRITICAL for inference!)
+        self.norm_mean = config.get("norm_mean")
+        self.norm_std = config.get("norm_std")
+        self.normalize = self.norm_mean is not None and self.norm_std is not None
+
         self.mel_transform = T.MelSpectrogram(
             sample_rate=sr, n_fft=self.n_fft, hop_length=self.hop,
             n_mels=self.n_mels, f_max=config["f_max"])
@@ -148,23 +153,30 @@ class FeatureExtractor:
         t_frames = mel.shape[-1]
 
         if self.n_channels == 1:
-            return mel.unsqueeze(0)  # (1, 1, n_mels, T)
+            features = mel.unsqueeze(0)  # (1, 1, n_mels, T)
+            if self.normalize:
+                features[0, 0] = (features[0, 0] - self.norm_mean[0]) / (self.norm_std[0] + 1e-8)
+            return features
 
-        # Channel 1: MFCC (40 → resize to n_mels)
+        # Channel 1: MFCC (40 → resize to n_mels using adaptive pooling)
         mfcc = self.mfcc_transform(waveform)
-        mfcc = F.interpolate(mfcc.unsqueeze(0), size=(self.n_mels, t_frames),
-                             mode='bilinear', align_corners=False).squeeze(0)
+        mfcc = F.adaptive_avg_pool2d(mfcc.unsqueeze(0), (self.n_mels, t_frames)).squeeze(0)
 
         # Channel 2: ZCR
         zcr = self._compute_zcr(audio_buffer, t_frames)
 
-        # Channel 3: STFT magnitude (resize to n_mels)
+        # Channel 3: STFT magnitude (resize to n_mels using adaptive pooling)
         stft_mag = self.amp_to_db(self.stft_transform(waveform))
-        stft_resized = F.interpolate(
-            stft_mag.unsqueeze(0), size=(self.n_mels, t_frames),
-            mode='bilinear', align_corners=False).squeeze(0)
+        stft_resized = F.adaptive_avg_pool2d(stft_mag.unsqueeze(0), (self.n_mels, t_frames)).squeeze(0)
 
+        # Stack all channels
         features = torch.cat([mel, mfcc, zcr, stft_resized], dim=0)
+
+        # Apply per-channel normalization (CRITICAL!)
+        if self.normalize:
+            for c in range(self.n_channels):
+                features[c] = (features[c] - self.norm_mean[c]) / (self.norm_std[c] + 1e-8)
+
         return features.unsqueeze(0)  # (1, 4, n_mels, T)
 
     def _compute_zcr(self, signal, t_frames):
@@ -183,10 +195,8 @@ class FeatureExtractor:
         zcr_2d = np.tile(zcr, (self.n_mels, 1))
         result = torch.from_numpy(zcr_2d).float().unsqueeze(0)
         if result.shape[-1] != t_frames:
-            result = F.interpolate(result.unsqueeze(0),
-                                   size=(self.n_mels, t_frames),
-                                   mode='bilinear',
-                                   align_corners=False).squeeze(0)
+            result = F.adaptive_avg_pool2d(
+                result.unsqueeze(0), (self.n_mels, t_frames)).squeeze(0)
         return result
 
 
@@ -495,7 +505,7 @@ class Display:
 class HouseholdMonitor:
     """Main monitoring orchestrator — ties all pipeline stages together."""
 
-    def __init__(self, model_dir="models", sensitivity=0.4,
+    def __init__(self, model_dir="models/trained_models", sensitivity=0.4,
                  speak=True, interval=1.0):
         self.model, self.labels, self.config = self._load_model(model_dir)
         self.sr = self.config["sample_rate"]
