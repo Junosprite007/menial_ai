@@ -29,7 +29,7 @@ import torchaudio.transforms as T
 import sounddevice as sd
 
 
-# ── Model architecture (must match training) ─────────────────────────────────
+# ── Model architectures (must match training) ────────────────────────────────
 
 class HouseholdSoundCNN(nn.Module):
     """4-block CNN for classifying audio feature spectrograms."""
@@ -68,6 +68,55 @@ class HouseholdSoundCNN(nn.Module):
         return self.classifier(self.features(x))
 
 
+class PANNsTransferModel(nn.Module):
+    """Transfer learning model using pre-trained PANNs CNN14 backbone.
+
+    For inference only the architecture matters — trained weights are loaded
+    from model.pt via load_state_dict(), so we skip downloading pretrained
+    AudioSet weights here.
+    """
+
+    def __init__(self, num_classes, freeze_backbone=False):
+        super().__init__()
+
+        from panns_inference.models import Cnn14
+
+        # Create the CNN14 architecture (no pretrained weights needed for
+        # inference — our trained model.pt already contains all weights).
+        self.backbone = Cnn14(
+            sample_rate=32000, window_size=1024, hop_size=320,
+            mel_bins=64, fmin=50, fmax=14000, classes_num=527
+        )
+
+        # Remove original AudioSet classifier (replaced by our custom head)
+        self.backbone.fc_audioset = nn.Identity()
+
+        if freeze_backbone:
+            for param in self.backbone.parameters():
+                param.requires_grad = False
+
+        # Custom classifier head (must match training)
+        self.classifier = nn.Sequential(
+            nn.Linear(2048, 512),
+            nn.ReLU(),
+            nn.BatchNorm1d(512),
+            nn.Dropout(0.3),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.BatchNorm1d(256),
+            nn.Dropout(0.3),
+            nn.Linear(256, num_classes)
+        )
+
+    def forward(self, x):
+        # Input: raw audio waveform (batch, audio_samples)
+        # PANNs internally does: raw audio → STFT → log mel → conv blocks
+        output_dict = self.backbone(x)
+        embeddings = output_dict['embedding']  # (batch, 2048)
+        logits = self.classifier(embeddings)
+        return logits
+
+
 # ── Load model and config ────────────────────────────────────────────────────
 
 def load_model(model_dir):
@@ -90,8 +139,19 @@ def load_model(model_dir):
     labels = label_data["labels"]
     num_classes = label_data["num_classes"]
 
+    # Detect model type from config
+    model_type = config.get("model_type", "custom_cnn")
     n_channels = config.get("n_channels", 1)
-    model = HouseholdSoundCNN(num_classes, n_channels=n_channels)
+
+    # Instantiate appropriate model architecture
+    if model_type == "panns_cnn14":
+        print(f"  Loading PANNs transfer learning model ({num_classes} classes)...")
+        model = PANNsTransferModel(num_classes, freeze_backbone=False)
+    else:
+        print(f"  Loading custom CNN model ({num_classes} classes, {n_channels}-channel)...")
+        model = HouseholdSoundCNN(num_classes, n_channels=n_channels)
+
+    # Load trained weights
     model.load_state_dict(torch.load(model_path, map_location="cpu", weights_only=True))
     model.eval()
 
@@ -108,15 +168,20 @@ def run_classifier(model_dir, top_k=3, interval=1.0):
     duration = config["duration"]
     n_samples = sr * duration
 
-    # Build mel transform matching training params
-    mel_transform = T.MelSpectrogram(
-        sample_rate=sr,
-        n_fft=config["n_fft"],
-        hop_length=config["hop_length"],
-        n_mels=config["n_mels"],
-        f_max=config["f_max"],
-    )
-    amp_to_db = T.AmplitudeToDB(top_db=config["top_db"])
+    # Detect model type
+    model_type = config.get("model_type", "custom_cnn")
+    is_panns = model_type == "panns_cnn14"
+
+    # Build mel transform (only needed for custom CNN)
+    if not is_panns:
+        mel_transform = T.MelSpectrogram(
+            sample_rate=sr,
+            n_fft=config["n_fft"],
+            hop_length=config["hop_length"],
+            n_mels=config["n_mels"],
+            f_max=config["f_max"],
+        )
+        amp_to_db = T.AmplitudeToDB(top_db=config["top_db"])
 
     # Ring buffer for rolling audio window
     buffer = np.zeros(n_samples, dtype=np.float32)
@@ -129,10 +194,15 @@ def run_classifier(model_dir, top_k=3, interval=1.0):
 
     def classify():
         waveform = torch.from_numpy(buffer.copy()).unsqueeze(0)  # (1, n_samples)
-        mel = mel_transform(waveform)
-        mel_db = amp_to_db(mel).unsqueeze(0)  # (1, 1, n_mels, time)
         with torch.no_grad():
-            logits = model(mel_db)
+            if is_panns:
+                # PANNs expects raw audio: (batch, audio_samples)
+                logits = model(waveform)
+            else:
+                # Custom CNN expects mel spectrogram: (1, 1, n_mels, time)
+                mel = mel_transform(waveform)
+                mel_db = amp_to_db(mel).unsqueeze(0)
+                logits = model(mel_db)
             probs = torch.softmax(logits, dim=1)
             topk = torch.topk(probs, min(top_k, len(labels)))
         return [(labels[i], p.item()) for i, p in

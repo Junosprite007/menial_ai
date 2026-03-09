@@ -114,9 +114,30 @@ Click on components in the spectrogram to select them. Use sliders to adjust dec
 
 ## Training a Model
 
-The classifier requires a trained CNN model. Training is done in a Jupyter notebook on Google Colab (free GPU).
+The classifier requires a trained CNN model. You have two options:
 
-### Step 1: Record Custom Training Samples (Optional)
+### ⭐ Option 1: Transfer Learning (Recommended - 74-85% accuracy)
+
+Use pre-trained PANNs (CNN14) for superior accuracy:
+
+```bash
+cd training
+python train_with_transfer_learning.py --use-pretrained
+```
+
+See **[TRANSFER_LEARNING.md](TRANSFER_LEARNING.md)** for complete guide.
+
+**Benefits:**
+- ✅ **Higher accuracy**: 74-85% vs 59% (15-26% boost)
+- ✅ **Faster convergence**: Fewer epochs needed
+- ✅ **Better generalization**: Pre-trained on 2M+ audio clips
+- ⚠️ Larger model size (7.7M vs 110K parameters)
+
+### Option 2: Train From Scratch (Original method - 59% accuracy)
+
+Train a custom 4-block CNN from scratch using Google Colab.
+
+#### Step 1: Record Custom Training Samples (Optional)
 
 Record 5-second clips for sound categories not covered by ESC-50 (e.g., chopping, fan, faucet):
 
@@ -124,9 +145,13 @@ Record 5-second clips for sound categories not covered by ESC-50 (e.g., chopping
 python record_samples.py chopping
 ```
 
-Press Enter to start each recording. Clips are saved to `data/custom/<class_name>/`. Record at least 20 clips per class for best results.
+Press Enter to start each recording. Clips are saved to `data/custom/<class_name>/`.
 
-### Step 2: Train on Google Colab
+**For detailed instructions with naming conventions**, see **[CUSTOM_DATASET.md](CUSTOM_DATASET.md)**.
+
+Record at least 20 clips per class (50-100 recommended for best results).
+
+#### Step 2: Train on Google Colab
 
 1. Open `training/train_classifier.ipynb` in Google Colab (or use the VS Code Colab extension)
 2. If you recorded custom clips, upload the `data/custom/` folder to the Colab environment
@@ -141,18 +166,18 @@ Press Enter to start each recording. Clips are saved to `data/custom/<class_name
    - Evaluate accuracy and generate a confusion matrix
    - Export `model.pt`, `labels.json`, and `config.json`
 
-### Step 3: Deploy the Model
+#### Step 3: Deploy the Model
 
-Download the three files from Colab and place them in `models/`:
+Download the three files from Colab and place them in `models/trained_models/`:
 
 ```
-models/
+models/trained_models/
 ├── model.pt       # Trained CNN weights
 ├── labels.json    # Class names
 └── config.json    # Mel spectrogram parameters
 ```
 
-Then run: `python monitor.py`
+Then run: `python monitor.py --model-dir models/trained_models`
 
 ---
 

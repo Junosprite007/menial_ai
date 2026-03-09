@@ -34,7 +34,7 @@ from scipy.signal import stft, istft
 from collections import defaultdict
 from datetime import datetime
 
-from classifier import HouseholdSoundCNN
+from classifier import HouseholdSoundCNN, PANNsTransferModel
 
 
 # ── NMF (from isolator.py) ───────────────────────────────────────────────────
@@ -118,7 +118,7 @@ class SignalCleaner:
 # ── Feature Extractor ────────────────────────────────────────────────────────
 
 class FeatureExtractor:
-    """Extract multi-channel features matching the training pipeline."""
+    """Extract features matching the training pipeline (single or multi-channel)."""
 
     def __init__(self, config):
         sr = config["sample_rate"]
@@ -127,37 +127,48 @@ class FeatureExtractor:
         self.n_mels = config["n_mels"]
         self.n_samples = sr * config["duration"]
         self.n_channels = config.get("n_channels", 1)
+        self.model_type = config.get("model_type", "custom_cnn")
 
         # Load normalization statistics (CRITICAL for inference!)
         self.norm_mean = config.get("norm_mean")
         self.norm_std = config.get("norm_std")
         self.normalize = self.norm_mean is not None and self.norm_std is not None
 
+        # Always need mel transform
         self.mel_transform = T.MelSpectrogram(
             sample_rate=sr, n_fft=self.n_fft, hop_length=self.hop,
             n_mels=self.n_mels, f_max=config["f_max"])
-        self.mfcc_transform = T.MFCC(
-            sample_rate=sr, n_mfcc=40,
-            melkwargs={"n_fft": self.n_fft, "hop_length": self.hop,
-                       "n_mels": self.n_mels, "f_max": config["f_max"]})
-        self.stft_transform = T.Spectrogram(
-            n_fft=self.n_fft, hop_length=self.hop, power=2.0)
         self.amp_to_db = T.AmplitudeToDB(top_db=config["top_db"])
+
+        # Multi-channel transforms (only for custom CNN)
+        if self.model_type != "panns_cnn14":
+            self.mfcc_transform = T.MFCC(
+                sample_rate=sr, n_mfcc=40,
+                melkwargs={"n_fft": self.n_fft, "hop_length": self.hop,
+                           "n_mels": self.n_mels, "f_max": config["f_max"]})
+            self.stft_transform = T.Spectrogram(
+                n_fft=self.n_fft, hop_length=self.hop, power=2.0)
 
     def extract(self, audio_buffer):
         """Extract feature tensor from raw audio buffer."""
         waveform = torch.from_numpy(audio_buffer.copy()).unsqueeze(0).float()
 
-        # Channel 0: Mel spectrogram
+        # PANNs expects raw audio waveform, not spectrograms
+        if self.model_type == "panns_cnn14":
+            return waveform  # (1, audio_samples)
+
+        # Channel 0: Mel spectrogram (used by custom CNN)
         mel = self.amp_to_db(self.mel_transform(waveform))
         t_frames = mel.shape[-1]
 
+        # Single-channel custom CNN
         if self.n_channels == 1:
             features = mel.unsqueeze(0)  # (1, 1, n_mels, T)
             if self.normalize:
                 features[0, 0] = (features[0, 0] - self.norm_mean[0]) / (self.norm_std[0] + 1e-8)
             return features
 
+        # Multi-channel mode (custom CNN with 4 channels)
         # Channel 1: MFCC (40 → resize to n_mels using adaptive pooling)
         mfcc = self.mfcc_transform(waveform)
         mfcc = F.adaptive_avg_pool2d(mfcc.unsqueeze(0), (self.n_mels, t_frames)).squeeze(0)
@@ -543,8 +554,15 @@ class HouseholdMonitor:
 
         labels = label_data["labels"]
         n_channels = config.get("n_channels", 1)
-        model = HouseholdSoundCNN(label_data["num_classes"],
-                                  n_channels=n_channels)
+        model_type = config.get("model_type", "custom_cnn")
+        num_classes = label_data["num_classes"]
+
+        # Instantiate appropriate model architecture
+        if model_type == "panns_cnn14":
+            model = PANNsTransferModel(num_classes, freeze_backbone=False)
+        else:
+            model = HouseholdSoundCNN(num_classes, n_channels=n_channels)
+
         model.load_state_dict(torch.load(model_path, map_location="cpu",
                                          weights_only=True))
         model.eval()
