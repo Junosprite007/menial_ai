@@ -35,5 +35,7 @@ env/
 # Dataset and model files
 data/
 models/*.pt
+models/**/*.pt
 
 ._*
+**._*
