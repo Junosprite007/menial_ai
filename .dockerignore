@@ -1,0 +1,16 @@
+.git
+.venv
+.venv312
+__pycache__
+*.pyc
+models/*/checkpoints*
+data/
+audio/
+documentation/
+training/
+frontend/node_modules
+frontend/.svelte-kit
+frontend/build
+.claude
+**/._*
+**/.DS_Store

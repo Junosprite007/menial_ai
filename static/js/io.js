@@ -169,13 +169,55 @@ function sendToPython() {
         .then(d => {
             btn.textContent = 'Analyze in Python';
             btn.disabled = false;
-            if (d.error) alert('Error: ' + d.error);
+            if (d.error) { alert('Error: ' + d.error); return; }
+            if (d.components && d.components.length > 0) {
+                showDecompositionResults(d);
+            } else {
+                alert(d.message || 'Analysis complete');
+            }
         })
         .catch(e => {
             btn.textContent = 'Analyze in Python';
             btn.disabled = false;
             alert('Server error \u2014 is server.py running?\n' + e.message);
         });
+}
+
+function showDecompositionResults(d) {
+    // Remove any existing results panel
+    const old = document.getElementById('decomp-results');
+    if (old) old.remove();
+
+    const panel = document.createElement('div');
+    panel.id = 'decomp-results';
+    panel.style.cssText = 'position:fixed;top:0;right:0;width:480px;height:100vh;overflow-y:auto;' +
+        'background:#0a0a1a;border-left:1px solid #333;z-index:10000;padding:20px;font-family:monospace;color:#ccc';
+
+    let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
+        '<h2 style="margin:0;color:#a78bfa;font-size:16px">NMF Decomposition (' + d.num_components + ' components)</h2>' +
+        '<button onclick="document.getElementById(\'decomp-results\').remove()" ' +
+        'style="background:none;border:1px solid #555;color:#ccc;padding:4px 10px;cursor:pointer;border-radius:4px">Close</button></div>';
+
+    if (d.spectrogram_url) {
+        html += '<img src="' + d.spectrogram_url + '" style="width:100%;border-radius:6px;margin-bottom:16px" />';
+    }
+
+    d.components.forEach(function(c) {
+        html += '<div style="border:1px solid #333;border-radius:6px;padding:12px;margin-bottom:12px">' +
+            '<div style="display:flex;justify-content:space-between;margin-bottom:8px">' +
+            '<span style="color:' + c.color + ';font-weight:bold">Component ' + c.id + '</span>' +
+            '<span style="color:#888">' + Math.round(c.freq_peak) + ' Hz</span></div>';
+        if (c.spectrogram_url) {
+            html += '<img src="' + c.spectrogram_url + '" style="width:100%;border-radius:4px;margin-bottom:8px" />';
+        }
+        if (c.audio_url) {
+            html += '<audio controls src="' + c.audio_url + '" style="width:100%;height:32px"></audio>';
+        }
+        html += '</div>';
+    });
+
+    panel.innerHTML = html;
+    document.body.appendChild(panel);
 }
 
 function encodeWAV(samples, sampleRate) {

@@ -1,0 +1,42 @@
+name: menial-ai
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      MODEL_DIR: /app/models/trial2/trained_models
+      UPLOAD_MAX_MB: 50
+      PYTHONUNBUFFERED: 1
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      API_URL: http://backend:8000
+      VIRTUAL_HOST: menial.local
+      VIRTUAL_PORT: 3000
+    ports:
+      - "3080:3000"
+    expose:
+      - "3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - default
+      - web_proxy
+
+networks:
+  web_proxy:
+    external: true
